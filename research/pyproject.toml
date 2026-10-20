@@ -1,0 +1,20 @@
+[project]
+name = "thesaurus"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "scikit-learn",
+    "scipy",
+    "threadpoolctl",
+]
+
+[tool.setuptools]
+packages = ["src"]
+
+[project.optional-dependencies]
+advanced = [
+    "kiwipiepy==0.24.0",
+    "onnxruntime==1.31.0",
+    "tokenizers==0.23.3",
+]

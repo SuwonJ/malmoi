@@ -1,0 +1,49 @@
+{
+  "status": "running",
+  "started_utc": "2026-10-15T06:37:35.885190+00:00",
+  "command": [
+    "/home/suwonj/Documents/thesaurus/src/advanced_experiments.py"
+  ],
+  "parameters": {
+    "benchmark": "/home/suwonj/Documents/thesaurus/data/benchmark.json",
+    "model": "/home/suwonj/Documents/thesaurus/artifacts/models/multilingual-e5-small",
+    "threads": 4,
+    "repeats": 3
+  },
+  "git_commit": "8b5f5b2f165fae657228cca2d2c0e6b9ae0d9d79",
+  "git_status": "M data/benchmark.json\n M pyproject.toml\n M src/evaluate.py\n M src/run_experiment.py\n?? README.md\n?? experiments/DECISION.md\n?? experiments/LATEST.md\n?? experiments/METHODS.md\n?? experiments/WORKFLOW.md\n?? experiments/e5_length_audit.json\n?? experiments/results.csv\n?? experiments/runs/\n?? scripts/fetch_e5.py\n?? scripts/fetch_reranker.py\n?? scripts/run_quality.py\n?? src/advanced_experiments.py\n?? src/experiment_suite.py\n?? src/quality_report.py\n?? src/rerank_experiments.py\n?? src/semantic_search.py\n?? tests/",
+  "platform": "Linux-7.2.7-arch1-1-x86_64-with-glibc2.44",
+  "python": "3.12.14 (main, Sep  2 2026, 23:27:36) [GCC 15.3.0]",
+  "threads": 4,
+  "packages": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "kiwipiepy": "0.24.0",
+    "kiwipiepy_model": "0.24.0",
+    "onnxruntime": "1.31.0",
+    "tokenizers": "0.23.3"
+  },
+  "data_sha256": "e16e8b8e7ff5b2207a976bd6d356d68d5010db24cbc4ac03d9ec1fcedcef3f5d",
+  "benchmark_sha256": "959dcf4618f6c35a17d3ca1b599c85f184f2d38285911586296cc27101a389c2",
+  "model_sha256": "f80102d3f2a1229f387d3c81909990d8945513e347b0eab049f7de3c6f98c193",
+  "tokenizer_sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+  "model_download": {
+    "repo": "Xenova/multilingual-e5-small",
+    "revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78"
+  },
+  "source_sha256": {
+    "src/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/data.py": "3e78a04b6f912a7bdef8609baea742a409c25516cfb66c2e890968581c9459a9",
+    "src/vectorizers.py": "bafb8ce41da98d27268bb9a182e4b321dfe27af02e11111daba92040d3287d69",
+    "src/reducers.py": "df66282c917c112cf950bce6aa9f1935df399979026bf8c76ad12ea35b4c075d",
+    "src/search.py": "15f81ebc99fb6f4a059f9709787e1cc899f22528cd553f244375a1e7fbdde3b4",
+    "src/run_experiment.py": "1dc9e1113b1c5706e46947de59496918839722c246da8d96f1d6892c67526697",
+    "src/evaluate.py": "583bbb26e1669d6201cb47d6af2a58a4ef12213f5d735b00df87b8508260ac11",
+    "src/experiment_suite.py": "939ac23cf263fbd2e05a5b7a86b64b772f03c279e366762ff328f1127552a5a9",
+    "src/semantic_search.py": "d2a4a57772ba7ae1d79c429870206acc033d5d53d420f95b8c5973c239df5e9b",
+    "src/advanced_experiments.py": "41538891edc084b6d3b2870bf261b23f007f164714c04751ebb2c8459be4374d",
+    "src/rerank_experiments.py": "3c3f893046725d9566b2df6e5a0037903aeb19e660aead3341159fc0aaba5b4c",
+    "src/quality_report.py": "f4498fd1f4216e557c0bf3769f67e721a8be0c03f341fc650d1c2c62065306f7"
+  }
+}

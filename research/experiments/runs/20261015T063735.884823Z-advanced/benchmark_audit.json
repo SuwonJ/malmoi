@@ -1,0 +1,142 @@
+[
+  {
+    "query": "비가 아주 조금 내려 먼지만 가라앉는 정도",
+    "labels": [
+      {
+        "word": "먼지잼",
+        "grade": 3,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "찔금하다",
+        "grade": 2,
+        "raw_present": true,
+        "normalized_present": true
+      },
+      {
+        "word": "질금하다",
+        "grade": 2,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "찔금",
+        "grade": 1,
+        "raw_present": true,
+        "normalized_present": true
+      },
+      {
+        "word": "질금",
+        "grade": 1,
+        "raw_present": true,
+        "normalized_present": true
+      }
+    ]
+  },
+  {
+    "query": "떠나지 못하고 주변을 계속 왔다 갔다 하는 행동",
+    "labels": [
+      {
+        "word": "서성거리다",
+        "grade": 3,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "서성서성",
+        "grade": 2,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "섬벙거리다",
+        "grade": 2,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "오락가락",
+        "grade": 1,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "올씬갈씬하다",
+        "grade": 1,
+        "raw_present": true,
+        "normalized_present": true
+      }
+    ]
+  },
+  {
+    "query": "일을 바로 하지 않고 자꾸 시간을 끄는 행동",
+    "labels": [
+      {
+        "word": "미적거리다",
+        "grade": 3,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "꾸물거리다",
+        "grade": 3,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "미적미적",
+        "grade": 2,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "미루적미루적",
+        "grade": 2,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "흘쩍흘쩍",
+        "grade": 1,
+        "raw_present": false,
+        "normalized_present": true
+      }
+    ]
+  },
+  {
+    "query": "뚜렷하지 않고 희미하게 보이는 모습",
+    "labels": [
+      {
+        "word": "어슴푸레하다",
+        "grade": 3,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "아슴푸레하다",
+        "grade": 3,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "아른하다",
+        "grade": 2,
+        "raw_present": true,
+        "normalized_present": true
+      },
+      {
+        "word": "어렴풋이",
+        "grade": 2,
+        "raw_present": false,
+        "normalized_present": true
+      },
+      {
+        "word": "아른히",
+        "grade": 1,
+        "raw_present": true,
+        "normalized_present": true
+      }
+    ]
+  }
+]

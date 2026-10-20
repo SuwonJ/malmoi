@@ -1,0 +1,8 @@
+{
+  "unique_definitions": 169950,
+  "tokens_p50": 19.0,
+  "tokens_p95": 59.0,
+  "tokens_max": 241,
+  "truncated_at_128": 517,
+  "truncated_fraction": 0.0030420711974110033
+}

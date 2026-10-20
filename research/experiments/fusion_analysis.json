@@ -1,0 +1,633 @@
+{
+  "status": "completed",
+  "retrieval_run": "experiments/runs/20261015T062710.638809Z-advanced",
+  "rerank_run": "experiments/runs/20261015T064333.730686Z-rerank",
+  "source_sha256": "b2ad5bebe3fa3611f39cf8efc773a8d9a40830e1e362a717ec85d35cd83f52cc",
+  "predictions_sha256": "547aaf51946bae7733c0cbd3a7395f09a53d8eca7b84c9ddc167aacab5c29b23",
+  "constant": 60,
+  "weights": [
+    1,
+    1
+  ],
+  "selection": "posthoc development-set diagnostic; not held-out validation",
+  "results": [
+    {
+      "method": "e5+char-rrf-top100-bge-def-prior-rrf",
+      "hit1": 0.0,
+      "hit5": 0.0,
+      "hit10": 0.25,
+      "recall10": 0.25,
+      "ndcg10": 0.2956947297043204,
+      "judged10": 0.35000000000000003,
+      "latency_ms": 3270.0709259544965,
+      "timing": "composed-excludes-small-fusion-cost",
+      "report": "fusion_analysis.json"
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-word-def-prior-rrf",
+      "hit1": 0.0,
+      "hit5": 0.0,
+      "hit10": 0.5,
+      "recall10": 0.5,
+      "ndcg10": 0.3361225920799832,
+      "judged10": 0.35000000000000003,
+      "latency_ms": 3814.9613807428977,
+      "timing": "composed-excludes-small-fusion-cost",
+      "report": "fusion_analysis.json"
+    }
+  ],
+  "predictions": [
+    {
+      "method": "e5+char-rrf-top100-bge-def-prior-rrf",
+      "query": "비가 아주 조금 내려 먼지만 가라앉는 정도",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "recall10": 0.0,
+        "ndcg10": 0.3828158965360119,
+        "judged10": 0.4
+      },
+      "top": [
+        {
+          "id": 55297,
+          "word": "질금",
+          "definition": "비가 아주 조금 내렸다 그치는 모양.",
+          "rerank_logit": 5.73673677444458
+        },
+        {
+          "id": 410089,
+          "word": "찔금",
+          "definition": "비가 아주 조금 내렸다 그치는 모양.",
+          "rerank_logit": 5.73673677444458
+        },
+        {
+          "id": 509042,
+          "word": "질금하다",
+          "definition": "비가 아주 조금 내렸다 그치다.",
+          "rerank_logit": 5.710824012756348
+        },
+        {
+          "id": 409878,
+          "word": "졸금",
+          "definition": "비가 조금 내리다가 멎는 모양.",
+          "rerank_logit": 6.175408363342285
+        },
+        {
+          "id": 55802,
+          "word": "찔금하다",
+          "definition": "비가 아주 조금 내렸다 그치다.",
+          "rerank_logit": 5.710824012756348
+        },
+        {
+          "id": 53919,
+          "word": "졸금하다",
+          "definition": "비가 조금 내리다가 멎다.",
+          "rerank_logit": 6.041435241699219
+        },
+        {
+          "id": 55995,
+          "word": "짤금",
+          "definition": "비가 조금 내렸다 그치는 모양.",
+          "rerank_logit": 4.841968059539795
+        },
+        {
+          "id": 520666,
+          "word": "질금질금",
+          "definition": "비가 아주 조금씩 자꾸 내렸다 그쳤다 하는 모양.",
+          "rerank_logit": 2.7604172229766846
+        },
+        {
+          "id": 409683,
+          "word": "잘금",
+          "definition": "비가 조금 내렸다 그치는 모양.",
+          "rerank_logit": 4.841968059539795
+        },
+        {
+          "id": 55997,
+          "word": "짤금하다",
+          "definition": "비가 조금 내렸다 그치다.",
+          "rerank_logit": 4.463729381561279
+        }
+      ]
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-def-prior-rrf",
+      "query": "떠나지 못하고 주변을 계속 왔다 갔다 하는 행동",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 1.0,
+        "recall10": 1.0,
+        "ndcg10": 0.4168050329594257,
+        "judged10": 0.4
+      },
+      "top": [
+        {
+          "id": 332942,
+          "word": "잔걸음",
+          "definition": "가까운 거리를 자주 왔다 갔다 하는 걸음.",
+          "rerank_logit": 8.474508285522461
+        },
+        {
+          "id": 17820,
+          "word": "오락가락",
+          "definition": "계속해서 왔다 갔다 하는 모양.",
+          "rerank_logit": 7.114993572235107
+        },
+        {
+          "id": 193487,
+          "word": "서성서성",
+          "definition": "한곳에 서 있지 않고 자꾸 주위를 왔다 갔다 하는 모양.",
+          "rerank_logit": 7.567888259887695
+        },
+        {
+          "id": 499253,
+          "word": "서성서성하다",
+          "definition": "한곳에 서 있지 않고 주위를 자꾸 왔다 갔다 하다.",
+          "rerank_logit": 7.617452144622803
+        },
+        {
+          "id": 556726,
+          "word": "올씬갈씬",
+          "definition": "번잡스럽게 자꾸 왔다 갔다 하는 모양.",
+          "rerank_logit": 6.887735843658447
+        },
+        {
+          "id": 236182,
+          "word": "오락가락하다",
+          "definition": "계속해서 왔다 갔다 하다.",
+          "rerank_logit": 8.643396377563477
+        },
+        {
+          "id": 235511,
+          "word": "올씬갈씬하다",
+          "definition": "번잡스럽게 계속 왔다 갔다 하다.",
+          "rerank_logit": 6.937644004821777
+        },
+        {
+          "id": 193481,
+          "word": "서성거리다",
+          "definition": "한곳에 서 있지 않고 자꾸 주위를 왔다 갔다 하다.",
+          "rerank_logit": 7.830183506011963
+        },
+        {
+          "id": 193482,
+          "word": "서성대다",
+          "definition": "한곳에 서 있지 않고 자꾸 주위를 왔다 갔다 하다.",
+          "rerank_logit": 7.830183506011963
+        },
+        {
+          "id": 35948,
+          "word": "나들다",
+          "definition": "일정한 곳에 자주 왔다 갔다 하다.",
+          "rerank_logit": 8.942381858825684
+        }
+      ]
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-def-prior-rrf",
+      "query": "일을 바로 하지 않고 자꾸 시간을 끄는 행동",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "recall10": 0.0,
+        "ndcg10": 0.17231578336256378,
+        "judged10": 0.3
+      },
+      "top": [
+        {
+          "id": 157416,
+          "word": "미룸미룸",
+          "definition": "일을 자꾸 미루어 시간을 끌어 가는 모양.",
+          "rerank_logit": 6.315059661865234
+        },
+        {
+          "id": 423041,
+          "word": "베슬거리다",
+          "definition": "어떠한 일에 대하여 바로 대들어 하지 않고 자꾸 슬그머니 동떨어져 행동하다.",
+          "rerank_logit": 5.104193210601807
+        },
+        {
+          "id": 29249,
+          "word": "흘쩍흘쩍",
+          "definition": "일을 다잡아 하지 아니하고 자꾸 일부러 질질 끄는 모양.",
+          "rerank_logit": 4.949390888214111
+        },
+        {
+          "id": 40569,
+          "word": "미대다",
+          "definition": "일을 제때에 하지 않고 오래 질질 끌다.",
+          "rerank_logit": 4.673415660858154
+        },
+        {
+          "id": 459915,
+          "word": "베슬대다",
+          "definition": "어떠한 일에 대하여 바로 대들어 하지 않고 자꾸 슬그머니 동떨어져 행동하다.",
+          "rerank_logit": 4.561914443969727
+        },
+        {
+          "id": 568749,
+          "word": "미루적미루적",
+          "definition": "해야 할 일이나 날짜 따위를 미루어 자꾸 시간을 끄는 모양.",
+          "rerank_logit": 3.374262809753418
+        },
+        {
+          "id": 554375,
+          "word": "흘쩍흘쩍하다",
+          "definition": "일을 다잡아 하지 아니하고 자꾸 일부러 질질 끌다.",
+          "rerank_logit": 4.8304762840271
+        },
+        {
+          "id": 40862,
+          "word": "미적미적",
+          "definition": "해야 할 일이나 날짜 따위를 미루어 자꾸 시간을 끄는 모양.",
+          "rerank_logit": 3.374262809753418
+        },
+        {
+          "id": 595843,
+          "word": "흐늘거리다",
+          "definition": "행동이 빠르지 못하고 자꾸 느리게 움직이다.",
+          "rerank_logit": 5.117897987365723
+        },
+        {
+          "id": 384622,
+          "word": "미루적미루적하다",
+          "definition": "해야 할 일이나 날짜 따위를 미루어 자꾸 시간을 끌다.",
+          "rerank_logit": 4.0450873374938965
+        }
+      ]
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-def-prior-rrf",
+      "query": "뚜렷하지 않고 희미하게 보이는 모습",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "recall10": 0.0,
+        "ndcg10": 0.21084220595928022,
+        "judged10": 0.3
+      },
+      "top": [
+        {
+          "id": 17911,
+          "word": "오련히",
+          "definition": "형태가 조금 나타나 보일 정도로 희미하게.",
+          "rerank_logit": 5.631528854370117
+        },
+        {
+          "id": 552992,
+          "word": "아른히",
+          "definition": "무엇이 희미하게 보이는 듯 마는 듯 하게.",
+          "rerank_logit": 5.1765570640563965
+        },
+        {
+          "id": 405682,
+          "word": "아른하다",
+          "definition": "무엇이 희미하게 보이는 듯 마는 듯 하다.",
+          "rerank_logit": 6.040176868438721
+        },
+        {
+          "id": 442626,
+          "word": "아른아른",
+          "definition": "무엇이 희미하게 보이다 말다 하는 모양.",
+          "rerank_logit": 5.103774070739746
+        },
+        {
+          "id": 336110,
+          "word": "우련히",
+          "definition": "빛깔이 엷고 희미하게.",
+          "rerank_logit": 4.6539692878723145
+        },
+        {
+          "id": 66165,
+          "word": "어렴풋하다",
+          "definition": "소리가 뚜렷하게 들리지 아니하고 희미하다.",
+          "rerank_logit": 4.794015884399414
+        },
+        {
+          "id": 66266,
+          "word": "아렴풋이",
+          "definition": "소리가 또렷하게 들리지 아니하고 희미하게.",
+          "rerank_logit": 4.982375144958496
+        },
+        {
+          "id": 66164,
+          "word": "어렴풋이",
+          "definition": "소리가 뚜렷하게 들리지 아니하고 희미하게.",
+          "rerank_logit": 4.485715389251709
+        },
+        {
+          "id": 448322,
+          "word": "오련하다",
+          "definition": "기억 따위가 또렷하지 아니하고 희미하다.",
+          "rerank_logit": 4.981462478637695
+        },
+        {
+          "id": 66372,
+          "word": "어리다",
+          "definition": "빛이나 그림자, 모습 따위가 희미하게 비치다.",
+          "rerank_logit": 6.326725482940674
+        }
+      ]
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-word-def-prior-rrf",
+      "query": "비가 아주 조금 내려 먼지만 가라앉는 정도",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 1.0,
+        "recall10": 1.0,
+        "ndcg10": 0.5447634306793453,
+        "judged10": 0.5
+      },
+      "top": [
+        {
+          "id": 55297,
+          "word": "질금",
+          "definition": "비가 아주 조금 내렸다 그치는 모양.",
+          "rerank_logit": 3.919973373413086
+        },
+        {
+          "id": 410089,
+          "word": "찔금",
+          "definition": "비가 아주 조금 내렸다 그치는 모양.",
+          "rerank_logit": 3.1265571117401123
+        },
+        {
+          "id": 409878,
+          "word": "졸금",
+          "definition": "비가 조금 내리다가 멎는 모양.",
+          "rerank_logit": 4.933230876922607
+        },
+        {
+          "id": 509042,
+          "word": "질금하다",
+          "definition": "비가 아주 조금 내렸다 그치다.",
+          "rerank_logit": 2.9984073638916016
+        },
+        {
+          "id": 55802,
+          "word": "찔금하다",
+          "definition": "비가 아주 조금 내렸다 그치다.",
+          "rerank_logit": 2.0353000164031982
+        },
+        {
+          "id": 409683,
+          "word": "잘금",
+          "definition": "비가 조금 내렸다 그치는 모양.",
+          "rerank_logit": 3.485886573791504
+        },
+        {
+          "id": 55995,
+          "word": "짤금",
+          "definition": "비가 조금 내렸다 그치는 모양.",
+          "rerank_logit": 3.0928704738616943
+        },
+        {
+          "id": 53919,
+          "word": "졸금하다",
+          "definition": "비가 조금 내리다가 멎다.",
+          "rerank_logit": 4.132277011871338
+        },
+        {
+          "id": 530936,
+          "word": "먼지잼하다",
+          "definition": "비가 겨우 먼지나 날리지 않을 정도로 조금 오다.",
+          "rerank_logit": 2.3511016368865967
+        },
+        {
+          "id": 149062,
+          "word": "먼지잼",
+          "definition": "비가 겨우 먼지나 날리지 않을 정도로 조금 옴.",
+          "rerank_logit": 1.5905669927597046
+        }
+      ]
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-word-def-prior-rrf",
+      "query": "떠나지 못하고 주변을 계속 왔다 갔다 하는 행동",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 1.0,
+        "recall10": 1.0,
+        "ndcg10": 0.38227994465996074,
+        "judged10": 0.3
+      },
+      "top": [
+        {
+          "id": 332942,
+          "word": "잔걸음",
+          "definition": "가까운 거리를 자주 왔다 갔다 하는 걸음.",
+          "rerank_logit": 5.552624225616455
+        },
+        {
+          "id": 499253,
+          "word": "서성서성하다",
+          "definition": "한곳에 서 있지 않고 주위를 자꾸 왔다 갔다 하다.",
+          "rerank_logit": 5.175411224365234
+        },
+        {
+          "id": 17820,
+          "word": "오락가락",
+          "definition": "계속해서 왔다 갔다 하는 모양.",
+          "rerank_logit": 4.288507461547852
+        },
+        {
+          "id": 193487,
+          "word": "서성서성",
+          "definition": "한곳에 서 있지 않고 자꾸 주위를 왔다 갔다 하는 모양.",
+          "rerank_logit": 4.514113903045654
+        },
+        {
+          "id": 556726,
+          "word": "올씬갈씬",
+          "definition": "번잡스럽게 자꾸 왔다 갔다 하는 모양.",
+          "rerank_logit": 3.591165065765381
+        },
+        {
+          "id": 193481,
+          "word": "서성거리다",
+          "definition": "한곳에 서 있지 않고 자꾸 주위를 왔다 갔다 하다.",
+          "rerank_logit": 5.182598114013672
+        },
+        {
+          "id": 236182,
+          "word": "오락가락하다",
+          "definition": "계속해서 왔다 갔다 하다.",
+          "rerank_logit": 4.7394609451293945
+        },
+        {
+          "id": 235509,
+          "word": "올씬갈씬거리다",
+          "definition": "번잡스럽게 자꾸 왔다 갔다 하다.",
+          "rerank_logit": 4.797775745391846
+        },
+        {
+          "id": 193482,
+          "word": "서성대다",
+          "definition": "한곳에 서 있지 않고 자꾸 주위를 왔다 갔다 하다.",
+          "rerank_logit": 5.057132244110107
+        },
+        {
+          "id": 410753,
+          "word": "살살거리다",
+          "definition": "마음이 들떠서 가만있지 못하고 계속해서 돌아다니다.",
+          "rerank_logit": 3.355335235595703
+        }
+      ]
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-word-def-prior-rrf",
+      "query": "일을 바로 하지 않고 자꾸 시간을 끄는 행동",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "recall10": 0.0,
+        "ndcg10": 0.1649824309540903,
+        "judged10": 0.3
+      },
+      "top": [
+        {
+          "id": 423041,
+          "word": "베슬거리다",
+          "definition": "어떠한 일에 대하여 바로 대들어 하지 않고 자꾸 슬그머니 동떨어져 행동하다.",
+          "rerank_logit": 3.654905319213867
+        },
+        {
+          "id": 459915,
+          "word": "베슬대다",
+          "definition": "어떠한 일에 대하여 바로 대들어 하지 않고 자꾸 슬그머니 동떨어져 행동하다.",
+          "rerank_logit": 3.2517099380493164
+        },
+        {
+          "id": 384622,
+          "word": "미루적미루적하다",
+          "definition": "해야 할 일이나 날짜 따위를 미루어 자꾸 시간을 끌다.",
+          "rerank_logit": 3.3744876384735107
+        },
+        {
+          "id": 157416,
+          "word": "미룸미룸",
+          "definition": "일을 자꾸 미루어 시간을 끌어 가는 모양.",
+          "rerank_logit": 3.1311020851135254
+        },
+        {
+          "id": 568749,
+          "word": "미루적미루적",
+          "definition": "해야 할 일이나 날짜 따위를 미루어 자꾸 시간을 끄는 모양.",
+          "rerank_logit": 2.8333611488342285
+        },
+        {
+          "id": 554375,
+          "word": "흘쩍흘쩍하다",
+          "definition": "일을 다잡아 하지 아니하고 자꾸 일부러 질질 끌다.",
+          "rerank_logit": 3.220224380493164
+        },
+        {
+          "id": 171493,
+          "word": "베슬베슬하다",
+          "definition": "어떠한 일에 대하여 바로 대들어 하지 않고 계속 슬그머니 동떨어져 행동하다.",
+          "rerank_logit": 3.2195396423339844
+        },
+        {
+          "id": 40862,
+          "word": "미적미적",
+          "definition": "해야 할 일이나 날짜 따위를 미루어 자꾸 시간을 끄는 모양.",
+          "rerank_logit": 1.8151475191116333
+        },
+        {
+          "id": 29249,
+          "word": "흘쩍흘쩍",
+          "definition": "일을 다잡아 하지 아니하고 자꾸 일부러 질질 끄는 모양.",
+          "rerank_logit": 2.7863919734954834
+        },
+        {
+          "id": 60992,
+          "word": "미적미적하다",
+          "definition": "해야 할 일이나 날짜 따위를 미루어 자꾸 시간을 끌다.",
+          "rerank_logit": 2.7557196617126465
+        }
+      ]
+    },
+    {
+      "method": "e5+char-rrf-top100-bge-word-def-prior-rrf",
+      "query": "뚜렷하지 않고 희미하게 보이는 모습",
+      "metrics": {
+        "hit1": 0.0,
+        "hit5": 0.0,
+        "hit10": 0.0,
+        "recall10": 0.0,
+        "ndcg10": 0.2524645620265365,
+        "judged10": 0.3
+      },
+      "top": [
+        {
+          "id": 17911,
+          "word": "오련히",
+          "definition": "형태가 조금 나타나 보일 정도로 희미하게.",
+          "rerank_logit": 4.621763229370117
+        },
+        {
+          "id": 66164,
+          "word": "어렴풋이",
+          "definition": "소리가 뚜렷하게 들리지 아니하고 희미하게.",
+          "rerank_logit": 3.6605348587036133
+        },
+        {
+          "id": 552992,
+          "word": "아른히",
+          "definition": "무엇이 희미하게 보이는 듯 마는 듯 하게.",
+          "rerank_logit": 4.237723350524902
+        },
+        {
+          "id": 405682,
+          "word": "아른하다",
+          "definition": "무엇이 희미하게 보이는 듯 마는 듯 하다.",
+          "rerank_logit": 4.48154354095459
+        },
+        {
+          "id": 336110,
+          "word": "우련히",
+          "definition": "빛깔이 엷고 희미하게.",
+          "rerank_logit": 3.1318159103393555
+        },
+        {
+          "id": 66266,
+          "word": "아렴풋이",
+          "definition": "소리가 또렷하게 들리지 아니하고 희미하게.",
+          "rerank_logit": 3.747490882873535
+        },
+        {
+          "id": 442626,
+          "word": "아른아른",
+          "definition": "무엇이 희미하게 보이다 말다 하는 모양.",
+          "rerank_logit": 2.8810155391693115
+        },
+        {
+          "id": 448322,
+          "word": "오련하다",
+          "definition": "기억 따위가 또렷하지 아니하고 희미하다.",
+          "rerank_logit": 3.25041127204895
+        },
+        {
+          "id": 66165,
+          "word": "어렴풋하다",
+          "definition": "소리가 뚜렷하게 들리지 아니하고 희미하다.",
+          "rerank_logit": 2.608325958251953
+        },
+        {
+          "id": 46974,
+          "word": "아슴푸레",
+          "definition": "또렷하게 보이거나 들리지 아니하고 희미하고 흐릿한 모양.",
+          "rerank_logit": 1.9875214099884033
+        }
+      ]
+    }
+  ]
+}

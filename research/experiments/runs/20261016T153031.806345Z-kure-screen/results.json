@@ -1,0 +1,17 @@
+[
+  {
+    "method": "kure-v1-int8-cls",
+    "hit1": 0.25,
+    "hit5": 0.75,
+    "hit10": 1.0,
+    "recall10": 0.875,
+    "ndcg10": 0.6196781353794412,
+    "judged10": 0.35,
+    "candidate_hit": 1.0,
+    "cached_document_query_p95_ms": 20.684974144387525,
+    "document_encode_seconds": 26.540833093997207,
+    "unique_definitions": 1237,
+    "dimensions": 1024,
+    "timing_samples": 12
+  }
+]

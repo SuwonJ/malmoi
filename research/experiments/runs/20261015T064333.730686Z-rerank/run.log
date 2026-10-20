@@ -1,0 +1,26 @@
+2026-10-15T06:43:37.766629+00:00 Loading BGE reranker
+2026-10-15T06:43:39.270464+00:00 Evaluating e5-small-int8-full-top50-bge-def
+2026-10-15T06:43:43.585092+00:00 query 1: nDCG=0.3756, rerank mean=1432.5ms
+2026-10-15T06:43:48.028662+00:00 query 2: nDCG=0.3122, rerank mean=1453.5ms
+2026-10-15T06:43:52.576279+00:00 query 3: nDCG=0.0244, rerank mean=1508.0ms
+2026-10-15T06:43:56.901007+00:00 query 4: nDCG=0.0000, rerank mean=1408.1ms
+2026-10-15T06:43:56.904239+00:00 e5-small-int8-full-top50-bge-def: nDCG=0.1780, Hit@10=0.00
+2026-10-15T06:43:56.904267+00:00 Evaluating e5+char-rrf-top50-bge-def
+2026-10-15T06:44:01.686802+00:00 query 1: nDCG=0.2819, rerank mean=1603.2ms
+2026-10-15T06:44:06.168757+00:00 query 2: nDCG=0.3479, rerank mean=1509.5ms
+2026-10-15T06:44:11.050624+00:00 query 3: nDCG=0.0244, rerank mean=1638.3ms
+2026-10-15T06:44:15.475046+00:00 query 4: nDCG=0.1592, rerank mean=1455.3ms
+2026-10-15T06:44:15.478569+00:00 e5+char-rrf-top50-bge-def: nDCG=0.2033, Hit@10=0.25
+2026-10-15T06:44:15.478593+00:00 Evaluating e5+char-rrf-top100-bge-def
+2026-10-15T06:44:24.950117+00:00 query 1: nDCG=0.2819, rerank mean=3155.1ms
+2026-10-15T06:44:34.316605+00:00 query 2: nDCG=0.3221, rerank mean=3082.1ms
+2026-10-15T06:44:43.748466+00:00 query 3: nDCG=0.0228, rerank mean=3152.2ms
+2026-10-15T06:44:52.867140+00:00 query 4: nDCG=0.1114, rerank mean=3040.6ms
+2026-10-15T06:44:52.872909+00:00 e5+char-rrf-top100-bge-def: nDCG=0.1845, Hit@10=0.25
+2026-10-15T06:44:52.872933+00:00 Evaluating e5+char-rrf-top100-bge-word-def
+2026-10-15T06:45:03.756421+00:00 query 1: nDCG=0.2457, rerank mean=3638.6ms
+2026-10-15T06:45:14.563207+00:00 query 2: nDCG=0.4745, rerank mean=3620.2ms
+2026-10-15T06:45:25.427104+00:00 query 3: nDCG=0.1708, rerank mean=3616.5ms
+2026-10-15T06:45:36.046464+00:00 query 4: nDCG=0.1978, rerank mean=3540.7ms
+2026-10-15T06:45:36.053952+00:00 e5+char-rrf-top100-bge-word-def: nDCG=0.2722, Hit@10=0.50
+2026-10-15T06:45:36.310180+00:00 Complete: /home/suwonj/Documents/thesaurus/experiments/runs/20261015T064333.730686Z-rerank/REPORT.md

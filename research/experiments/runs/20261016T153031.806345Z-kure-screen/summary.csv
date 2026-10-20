@@ -1,0 +1,2 @@
+method,hit1,hit5,hit10,recall10,ndcg10,judged10,candidate_hit,cached_document_query_p95_ms,document_encode_seconds,unique_definitions,dimensions,timing_samples
+kure-v1-int8-cls,0.25,0.75,1.0,0.875,0.6196781353794412,0.35,1.0,20.684974144387525,26.540833093997207,1237,1024,12

@@ -1,0 +1,1193 @@
+{
+  "status": "completed",
+  "started_utc": "2026-10-16T15:31:07.510132+00:00",
+  "parameters": {
+    "kind": "qwen",
+    "depth": 200,
+    "threads": 4,
+    "repeats": 3
+  },
+  "instruction": "Given a description, retrieve Korean dictionary definitions that express the same meaning.",
+  "packages": {
+    "numpy": "2.5.3",
+    "onnxruntime": "1.31.0",
+    "tokenizers": "0.23.3"
+  },
+  "pooling": "last-valid-token",
+  "max_length": 128,
+  "base_run": "experiments/runs/20261015T062710.638809Z-advanced",
+  "candidate_score_sha256": "db6ccbad21eccf512adeb07c0050ea7ca664c71126b49d480f18f6ff7d0d213b",
+  "pool_depth_per_method": 200,
+  "unique_definitions": 1237,
+  "candidate_senses": 1407,
+  "model_download": {
+    "repo": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+    "revision": "c25a394dd583836952667c12f008335071b3f43d",
+    "sha256": {
+      "onnx/model_int8.onnx": "6d0ea863f78b4a84afa3c7fcba1ec341572b5e28121aef77b7092b1dfdf679c7",
+      "tokenizer.json": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a",
+      "config.json": "66a10929782f3c9a3cd5dec90e2a95c60e05736134a63cd54479eeae80bed175"
+    }
+  },
+  "onnx_inputs": [
+    {
+      "name": "input_ids",
+      "shape": [
+        "batch_size",
+        "sequence_length"
+      ],
+      "type": "tensor(int64)"
+    },
+    {
+      "name": "attention_mask",
+      "shape": [
+        "batch_size",
+        "total_sequence_length"
+      ],
+      "type": "tensor(int64)"
+    },
+    {
+      "name": "position_ids",
+      "shape": [
+        "batch_size",
+        "sequence_length"
+      ],
+      "type": "tensor(int64)"
+    },
+    {
+      "name": "past_key_values.0.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.0.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.1.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.1.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.2.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.2.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.3.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.3.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.4.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.4.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.5.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.5.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.6.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.6.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.7.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.7.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.8.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.8.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.9.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.9.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.10.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.10.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.11.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.11.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.12.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.12.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.13.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.13.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.14.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.14.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.15.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.15.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.16.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.16.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.17.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.17.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.18.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.18.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.19.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.19.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.20.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.20.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.21.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.21.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.22.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.22.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.23.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.23.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.24.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.24.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.25.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.25.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.26.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.26.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.27.key",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "past_key_values.27.value",
+      "shape": [
+        "batch_size",
+        8,
+        "past_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    }
+  ],
+  "onnx_outputs": [
+    {
+      "name": "last_hidden_state",
+      "shape": [
+        "batch_size",
+        "sequence_length",
+        1024
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.0.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.0.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.1.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.1.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.2.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.2.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.3.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.3.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.4.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.4.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.5.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.5.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.6.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.6.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.7.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.7.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.8.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.8.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.9.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.9.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.10.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.10.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.11.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.11.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.12.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.12.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.13.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.13.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.14.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.14.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.15.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.15.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.16.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.16.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.17.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.17.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.18.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.18.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.19.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.19.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.20.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.20.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.21.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.21.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.22.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.22.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.23.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.23.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.24.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.24.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.25.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.25.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.26.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.26.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.27.key",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    },
+    {
+      "name": "present.27.value",
+      "shape": [
+        "batch_size",
+        8,
+        "total_sequence_length",
+        128
+      ],
+      "type": "tensor(float)"
+    }
+  ],
+  "document_encode_seconds": 56.38801573999808,
+  "dimensions": 1024,
+  "vectors_normalized_max_error": 1.1920928955078125e-07,
+  "finished_utc": "2026-10-16T15:32:10.374084+00:00"
+}

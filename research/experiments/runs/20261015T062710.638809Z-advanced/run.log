@@ -1,0 +1,60 @@
+2026-10-15T06:27:14.054770+00:00 Loaded 266,506 senses / 4 queries
+2026-10-15T06:27:14.054833+00:00 Building char baseline
+2026-10-15T06:27:25.022814+00:00 char: nDCG=0.4050, Hit@10=0.25, Hit@100=0.75, p95=13.28ms (measured)
+2026-10-15T06:27:25.105787+00:00 Loading Kiwi and tokenizing corpus
+2026-10-15T06:27:31.897137+00:00 Morphology 25,000/266,506
+2026-10-15T06:27:37.144209+00:00 Morphology 50,000/266,506
+2026-10-15T06:27:41.358240+00:00 Morphology 75,000/266,506
+2026-10-15T06:27:46.212121+00:00 Morphology 100,000/266,506
+2026-10-15T06:27:51.124758+00:00 Morphology 125,000/266,506
+2026-10-15T06:27:56.227914+00:00 Morphology 150,000/266,506
+2026-10-15T06:28:01.450725+00:00 Morphology 175,000/266,506
+2026-10-15T06:28:06.820538+00:00 Morphology 200,000/266,506
+2026-10-15T06:28:11.509192+00:00 Morphology 225,000/266,506
+2026-10-15T06:28:16.362670+00:00 Morphology 250,000/266,506
+2026-10-15T06:28:19.694735+00:00 Building Kiwi tfidf
+2026-10-15T06:28:22.261242+00:00 kiwi-tfidf: nDCG=0.3008, Hit@10=0.00, Hit@100=0.50, p95=4.25ms (measured)
+2026-10-15T06:28:22.321165+00:00 Building Kiwi bm25
+2026-10-15T06:28:24.815779+00:00 kiwi-bm25: nDCG=0.2902, Hit@10=0.00, Hit@100=0.75, p95=3.04ms (measured)
+2026-10-15T06:28:25.201159+00:00 lexical-rrf: nDCG=0.3157, Hit@10=0.00, Hit@100=0.75, p95=35.53ms (composed)
+2026-10-15T06:28:25.301641+00:00 Loading E5: 169,950 unique definitions / 266,506 senses
+2026-10-15T06:28:28.034670+00:00 E5 embeddings 512/169,950; 252.5 definitions/s; remaining ~671s
+2026-10-15T06:28:56.775979+00:00 E5 embeddings 5,632/169,950; 183.0 definitions/s; remaining ~898s
+2026-10-15T06:29:21.816527+00:00 E5 embeddings 10,752/169,950; 192.7 definitions/s; remaining ~826s
+2026-10-15T06:29:45.075511+00:00 E5 embeddings 15,872/169,950; 200.7 definitions/s; remaining ~768s
+2026-10-15T06:30:11.308573+00:00 E5 embeddings 20,992/169,950; 199.4 definitions/s; remaining ~747s
+2026-10-15T06:30:39.692398+00:00 E5 embeddings 26,112/169,950; 195.3 definitions/s; remaining ~736s
+2026-10-15T06:31:03.675144+00:00 E5 embeddings 31,232/169,950; 198.1 definitions/s; remaining ~700s
+2026-10-15T06:31:26.069425+00:00 E5 embeddings 36,352/169,950; 201.9 definitions/s; remaining ~662s
+2026-10-15T06:31:43.924153+00:00 E5 embeddings 41,472/169,950; 209.5 definitions/s; remaining ~613s
+2026-10-15T06:32:09.500208+00:00 E5 embeddings 46,592/169,950; 208.5 definitions/s; remaining ~592s
+2026-10-15T06:32:34.698403+00:00 E5 embeddings 51,712/169,950; 207.9 definitions/s; remaining ~569s
+2026-10-15T06:33:02.486660+00:00 E5 embeddings 56,832/169,950; 205.6 definitions/s; remaining ~550s
+2026-10-15T06:33:27.742550+00:00 E5 embeddings 61,952/169,950; 205.3 definitions/s; remaining ~526s
+2026-10-15T06:33:57.189403+00:00 E5 embeddings 67,072/169,950; 202.5 definitions/s; remaining ~508s
+2026-10-15T06:34:24.078596+00:00 E5 embeddings 72,192/169,950; 201.6 definitions/s; remaining ~485s
+2026-10-15T06:34:51.841655+00:00 E5 embeddings 77,312/169,950; 200.4 definitions/s; remaining ~462s
+2026-10-15T06:35:17.021328+00:00 E5 embeddings 82,432/169,950; 200.6 definitions/s; remaining ~436s
+2026-10-15T06:35:45.720415+00:00 E5 embeddings 87,552/169,950; 199.1 definitions/s; remaining ~414s
+2026-10-15T06:36:16.505098+00:00 E5 embeddings 92,672/169,950; 197.0 definitions/s; remaining ~392s
+2026-10-15T06:36:52.710016+00:00 E5 embeddings 97,792/169,950; 193.0 definitions/s; remaining ~374s
+2026-10-15T06:37:22.443935+00:00 E5 embeddings 102,912/169,950; 191.8 definitions/s; remaining ~349s
+2026-10-15T06:37:53.970912+00:00 E5 embeddings 108,032/169,950; 190.2 definitions/s; remaining ~326s
+2026-10-15T06:38:25.382112+00:00 E5 embeddings 113,152/169,950; 188.8 definitions/s; remaining ~301s
+2026-10-15T06:38:58.047603+00:00 E5 embeddings 118,272/169,950; 187.1 definitions/s; remaining ~276s
+2026-10-15T06:39:22.750204+00:00 E5 embeddings 123,392/169,950; 187.9 definitions/s; remaining ~248s
+2026-10-15T06:39:54.247712+00:00 E5 embeddings 128,512/169,950; 186.7 definitions/s; remaining ~222s
+2026-10-15T06:40:29.664480+00:00 E5 embeddings 133,632/169,950; 184.7 definitions/s; remaining ~197s
+2026-10-15T06:40:56.491332+00:00 E5 embeddings 138,752/169,950; 184.9 definitions/s; remaining ~169s
+2026-10-15T06:41:21.374197+00:00 E5 embeddings 143,872/169,950; 185.6 definitions/s; remaining ~141s
+2026-10-15T06:41:45.005220+00:00 E5 embeddings 148,992/169,950; 186.5 definitions/s; remaining ~112s
+2026-10-15T06:42:09.823798+00:00 E5 embeddings 154,112/169,950; 187.1 definitions/s; remaining ~85s
+2026-10-15T06:42:29.791267+00:00 E5 embeddings 159,232/169,950; 188.7 definitions/s; remaining ~57s
+2026-10-15T06:42:55.462218+00:00 E5 embeddings 164,352/169,950; 189.0 definitions/s; remaining ~30s
+2026-10-15T06:43:22.652995+00:00 E5 embeddings 169,472/169,950; 189.0 definitions/s; remaining ~3s
+2026-10-15T06:43:25.271475+00:00 E5 embeddings 169,950/169,950; 189.0 definitions/s; remaining ~0s
+2026-10-15T06:43:26.166241+00:00 e5-small-int8-full: nDCG=0.2081, Hit@10=0.25, Hit@100=0.75, p95=41.71ms (measured)
+2026-10-15T06:43:26.698090+00:00 e5+char-rrf: nDCG=0.3637, Hit@10=0.50, Hit@100=1.00, p95=88.01ms (composed)
+2026-10-15T06:43:27.091383+00:00 e5+kiwi-bm25-rrf: nDCG=0.2315, Hit@10=0.00, Hit@100=1.00, p95=68.62ms (composed)
+2026-10-15T06:43:27.462730+00:00 e5+lexical-rrf-rrf: nDCG=0.2685, Hit@10=0.00, Hit@100=1.00, p95=99.18ms (composed)
+2026-10-15T06:43:28.215854+00:00 Complete: /home/suwonj/Documents/thesaurus/experiments/runs/20261015T062710.638809Z-advanced/REPORT.md

@@ -1,0 +1,3 @@
+method,hit1,hit5,hit10,recall10,ndcg10,judged10,candidate_hit,cached_document_query_p95_ms,document_encode_seconds,unique_definitions,dimensions,timing_samples
+qwen3-embedding-0.6b-int8-instruct,0.0,0.0,0.25,0.25,0.15316161857655022,0.125,1.0,58.47630504940753,56.38801573999808,1237,1024,12
+qwen3-embedding-0.6b-int8-no-instruct,0.25,0.5,0.5,0.375,0.28946346933559675,0.17500000000000002,1.0,38.12786215203232,56.38801573999808,1237,1024,12

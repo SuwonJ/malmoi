@@ -1,0 +1,65 @@
+{
+  "status": "completed",
+  "started_utc": "2026-10-16T15:30:31.806431+00:00",
+  "parameters": {
+    "kind": "kure",
+    "depth": 200,
+    "threads": 4,
+    "repeats": 3
+  },
+  "instruction": "Given a description, retrieve Korean dictionary definitions that express the same meaning.",
+  "packages": {
+    "numpy": "2.5.3",
+    "onnxruntime": "1.31.0",
+    "tokenizers": "0.23.3"
+  },
+  "pooling": "CLS",
+  "max_length": 128,
+  "base_run": "experiments/runs/20261015T062710.638809Z-advanced",
+  "candidate_score_sha256": "db6ccbad21eccf512adeb07c0050ea7ca664c71126b49d480f18f6ff7d0d213b",
+  "pool_depth_per_method": 200,
+  "unique_definitions": 1237,
+  "candidate_senses": 1407,
+  "model_download": {
+    "repo": "LaraAI-Labs/KURE-v1-onnx-int8",
+    "revision": "dbe4aab58463d0b4f52547b9e7958e733c4758e9",
+    "sha256": {
+      "model.onnx": "1808718e3d54308c8d7bf67fbad5632e08e44b029653e3e31cdd7ed0180d171b",
+      "tokenizer.json": "fb3c3b93c46fd5a8634e262e1b7de7da11a18b527aa2282b312952b692781dfd",
+      "config.json": "852d42e020c7f989c2acaf30fc683b7f768e8c6d1ab17166e835442162bd825d"
+    }
+  },
+  "onnx_inputs": [
+    {
+      "name": "input_ids",
+      "shape": [
+        "batch",
+        "seq"
+      ],
+      "type": "tensor(int64)"
+    },
+    {
+      "name": "attention_mask",
+      "shape": [
+        "batch",
+        "seq"
+      ],
+      "type": "tensor(int64)"
+    }
+  ],
+  "onnx_outputs": [
+    {
+      "name": "last_hidden_state",
+      "shape": [
+        "batch",
+        "seq",
+        1024
+      ],
+      "type": "tensor(float)"
+    }
+  ],
+  "document_encode_seconds": 26.540833093997207,
+  "dimensions": 1024,
+  "vectors_normalized_max_error": 1.1920928955078125e-07,
+  "finished_utc": "2026-10-16T15:31:04.027207+00:00"
+}

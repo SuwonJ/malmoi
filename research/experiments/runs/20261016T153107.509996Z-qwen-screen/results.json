@@ -1,0 +1,32 @@
+[
+  {
+    "method": "qwen3-embedding-0.6b-int8-instruct",
+    "hit1": 0.0,
+    "hit5": 0.0,
+    "hit10": 0.25,
+    "recall10": 0.25,
+    "ndcg10": 0.15316161857655022,
+    "judged10": 0.125,
+    "candidate_hit": 1.0,
+    "cached_document_query_p95_ms": 58.47630504940753,
+    "document_encode_seconds": 56.38801573999808,
+    "unique_definitions": 1237,
+    "dimensions": 1024,
+    "timing_samples": 12
+  },
+  {
+    "method": "qwen3-embedding-0.6b-int8-no-instruct",
+    "hit1": 0.25,
+    "hit5": 0.5,
+    "hit10": 0.5,
+    "recall10": 0.375,
+    "ndcg10": 0.28946346933559675,
+    "judged10": 0.17500000000000002,
+    "candidate_hit": 1.0,
+    "cached_document_query_p95_ms": 38.12786215203232,
+    "document_encode_seconds": 56.38801573999808,
+    "unique_definitions": 1237,
+    "dimensions": 1024,
+    "timing_samples": 12
+  }
+]

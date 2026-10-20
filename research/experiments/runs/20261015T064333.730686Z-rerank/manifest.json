@@ -1,0 +1,32 @@
+{
+  "status": "completed",
+  "started_utc": "2026-10-15T06:43:33.730791+00:00",
+  "command": [
+    "/home/suwonj/Documents/thesaurus/src/rerank_experiments.py",
+    "--base",
+    "experiments/runs/20261015T062710.638809Z-advanced"
+  ],
+  "parameters": {
+    "base": "/home/suwonj/Documents/thesaurus/experiments/runs/20261015T062710.638809Z-advanced",
+    "model": "/home/suwonj/Documents/thesaurus/artifacts/models/bge-reranker-v2-m3",
+    "threads": 4,
+    "repeats": 2
+  },
+  "model_sha256": "912fc1215c2dbff6499700534bd8d31253af01573861abbfc43afd1fab6cce5d",
+  "tokenizer_sha256": "8bf8afbfd11306bd872018c53bfdf2e160a56f8edbcf49933324404791c148d3",
+  "packages": {
+    "numpy": "2.5.3",
+    "onnxruntime": "1.31.0",
+    "tokenizers": "0.23.3",
+    "scikit-learn": "1.9.1"
+  },
+  "model_download": {
+    "repo": "onnx-community/bge-reranker-v2-m3-ONNX",
+    "revision": "6f5ff65298512715a1e669753bc754d2bc8f367b"
+  },
+  "git_commit": "8b5f5b2f165fae657228cca2d2c0e6b9ae0d9d79",
+  "platform": "Linux-7.2.7-arch1-1-x86_64-with-glibc2.44",
+  "base_run": "experiments/runs/20261015T062710.638809Z-advanced",
+  "base_score_sha256": "db6ccbad21eccf512adeb07c0050ea7ca664c71126b49d480f18f6ff7d0d213b",
+  "finished_utc": "2026-10-15T06:45:36.310222+00:00"
+}
