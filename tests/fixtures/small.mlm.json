@@ -1,0 +1,16 @@
+{
+  "dataset_version": "synthetic-8-v1",
+  "format_version": 1,
+  "prepare_version": 1,
+  "word_count": 8,
+  "sense_count": 9,
+  "key_policy": "NFC; remove ASCII - and ^; preserve raw spelling",
+  "id_policy": "sorted lexeme/source keys; IDs local to dataset version",
+  "synthetic": true,
+  "logical_sha256": "16f816f767473218d4170e8c3a3640d003c7e5319e8d1b444d7a7ef0bf21ff84",
+  "source_sha256": "1f7fe875b7b0a0318f22df703d53959498eda84d526e4d2e3bcd411835ba3cf1",
+  "file_sha256": "53b97f7ec6c349ec1580d3a13426e1222a322c6132e940073dba4a1116237c58",
+  "bytes": 2471,
+  "word_space": "{\"dimension\":8,\"document_prefix\":\"\",\"dtype\":\"float32\",\"model_id\":\"malmoi-synthetic-8\",\"normalization\":\"none\",\"pooling\":\"fixed-fixture\",\"purpose\":\"word-game\",\"query_prefix\":\"\",\"revision\":\"fixture-v1\",\"synthetic\":true}",
+  "sense_space": "{\"dimension\":8,\"document_prefix\":\"\",\"dtype\":\"float32\",\"model_id\":\"malmoi-synthetic-8\",\"normalization\":\"none\",\"pooling\":\"fixed-fixture\",\"purpose\":\"reverse-definition\",\"query_prefix\":\"\",\"revision\":\"fixture-v1\",\"synthetic\":true}"
+}

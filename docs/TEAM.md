@@ -6,7 +6,7 @@
 
 | 담당 | 주 역할 | 주 파일(계획) | 독립적으로 완료할 산출물 |
 | --- | --- | --- | --- |
-| **장수원 A** | 팀장·데이터·핵심 엔진 | `prepare.py`, `vecdb.c/.h`, `Makefile` | 1,000개 소형 사전과 로더, 벡터 비교 API, 통합 빌드 |
+| **장수원 A** | 팀장·데이터·핵심 엔진 | `tools/prepare.py`, `src/vecdb.c`, `include/vecdb.h`, `Makefile` | 1,000개 소형 사전과 로더, 벡터 비교 API, 통합 빌드 |
 | **김시현 B** | 유사어 사전·CLI·테스트 | `hash.c/.h`, `similar.c`, `main.c` | 문자열→단어 ID 매핑, 유사어 Top-K, 메뉴 및 테스트 |
 | **나지연 C** | 역사전 | `tokenizer.c/.h`, `reverse.c` | 문장 전처리, 뜻풀이 검색 Top-K, 검색 품질 비교 |
 | **허지훈 D** | 게임·웹 UI | `game.c`, `server.c`, `web/` | 게임 규칙/힌트/랭크, 추후 HTTP·프론트엔드 시연 |
@@ -17,11 +17,11 @@ A의 실행 순서·산출물·호환성 검사는 [A 공통 기반 체크리스
 
 ## 병렬 작업을 위해 먼저 필요한 것
 
-- A: 사전/벡터 파일 **포맷과 읽기 API** 초안 + 1,000개 소형 테스트 데이터. 고급 최적화보다 이 작업을 먼저 한다.
+- A: 공통 데이터 형식 v1·읽기 API·1,000단어 개발용 세트가 준비됐다. B/C/D는 `make core-test`와 `make demo-b/demo-c/demo-d`로 확인한다.
 - B: A의 구현이 없더라도 가짜 사전(작은 C 배열)로 유사어 검색과 CLI를 구현한다.
 - C: 입력→토큰 목록→질의 벡터→상위 K 결과를 나누어 테스트한다. 우선 C에서 단순 baseline을 완성한다.
 - D: 서버와 웹에 앞서 **C 게임 엔진**을 독립 실행/테스트한다. UI는 정적 목업으로 병렬 작업 가능하다.
-- 공통: `docs/INTERFACES.md`는 초안이다. 로컬 기존 `.h`를 합쳐 확인한 뒤 인터페이스를 확정한다.
+- 공통: 구현 기준은 `include/vecdb.h`, `docs/INTERFACES.md`, `docs/DATA_FORMAT.md`다. 별도 보유한 기존 헤더가 있으면 호출부를 함께 이행한다.
 
 **주의:** A가 로컬에서 이미 수행한 문자 TF-IDF/E5/BGE 실험은 별도 연구 자산이다. 팀 과제의 fastText·평균 벡터 baseline과 **혼동하거나 측정 결과를 섞지 않는다**. Python 원본은 `research/`에 반입했다. C용 `src/`·`include/`와 구분하며, 설치·검증은 루트의 `make setup`, `make test`, `make smoke`로 시작한다.
 

@@ -12,11 +12,19 @@
 
 우리말샘의 고유어 데이터와 사전학습 벡터를 활용하되, **검색·게임의 주요 자료구조와 계산은 C에서 직접 구현**한다. 장기적으로 희귀하거나 잊혀가는 우리말을 탐색하기 쉬운 도구를 지향한다.
 
-> **현재 상태 (2026-10-20):** Python 검색·평가 코드와 테스트를 `research/`에 반입했다. 아래 명령으로 원본 사전 없이 예제 실험까지 실행할 수 있다. C 기반 세 기능은 이제 공통 데이터·함수 계약을 확정하고 구현을 시작할 단계다. [실험 사용법](research/README.md) · [현재 진도](docs/PROGRESS.md)
+> **현재 상태 (2026-10-20):** Python 연구 코드와 A의 공통 C 코어를 반입·구현했다. word/sense 데이터 형식 v1, Python 작성기, C 벡터 로더·계산 API와 1,000단어 개발용 fixture가 동작한다. B·C·D는 [공통 코어 사용법](docs/CORE_HANDOFF.md)으로 독립 개발을 시작할 수 있다. [현재 진도](docs/PROGRESS.md)
+
 
 ## 바로 실행
 
-Python 3.11 이상에서:
+C11 컴파일러와 Python 3.11 이상으로 공통 C 코어부터 확인한다. 이 단계에는 pip·원본 사전·모델이 필요 없다.
+
+```bash
+make core-test
+make demo-b demo-c demo-d
+```
+
+Python 연구 실험은 별도로 설치한다:
 
 ```bash
 make setup
@@ -30,7 +38,7 @@ make smoke
 
 | 담당 | 책임 | 주 소유 파일 |
 | --- | --- | --- |
-| 장수원 (A) | 데이터·공통 엔진·통합 관리 | `prepare.py`, `vecdb.c/.h`, `Makefile` |
+| 장수원 (A) | 데이터·공통 엔진·통합 관리 | `tools/prepare.py`, `src/vecdb.c`, `include/vecdb.h`, `Makefile` |
 | 김시현 (B) | 유사어 검색·CLI·검증 | `hash.c/.h`, `similar.c`, `main.c` |
 | 나지연 (C) | 형태소/토큰 처리·역방향 검색·품질 평가 | `tokenizer.c/.h`, `reverse.c` |
 | 허지훈 (D) | 유사도 게임·웹 UI·서버 | `game.c`, `server.c`, `web/` |
@@ -45,11 +53,14 @@ research/            반입 완료: Python 검색·모델 실험과 평가 도�
   scripts/           데이터 변환, 모델 준비, 비교 실행, 수동 검색
   tests/             단위 테스트와 직접 작성한 소형 예제
   experiments/       방법론, 결과 요약, 과거 실행 보고서·메타데이터
-src/                 C 검색·게임·서버 구현 공간 (현재 비어 있음)
-include/             C 공통 헤더 공간 (현재 비어 있음)
-docs/                설계, 역할, 실험 규칙, 진행 현황
-Makefile             Python 설치·검증·실험 진입점
-.github/workflows/   설치·단위 테스트·예제 실험 CI
+src/vecdb.c          구현 완료: C 데이터 로더·조회·벡터 계산
+include/vecdb.h      구현 완료: 공통 C API
+tools/               공통 데이터 작성기·1,000단어 fixture 생성기
+examples/            B·C·D용 독립 C API 호출 예제
+tests/               C 단위 검사·Python↔C 호환성·golden fixture
+docs/                설계, 역할, 파일 형식, 실험 규칙, 진행 현황
+Makefile             C 빌드·메모리 검사·Python 설치/실험 진입점
+.github/workflows/   연구 테스트와 Linux/macOS/Windows C CI
 ```
 
 Python 연구 코드는 기존 `src` 패키지 구조를 유지한 채 `research/`로 분리했다. C용 `src/`·`include/`와 충돌하지 않는다. 별도로 보유한 기존 C 코드는 [로컬 이력 가져오기](docs/LOCAL_IMPORT.md)에 따라 보존·반입한다.
