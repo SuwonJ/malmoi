@@ -1,0 +1,63 @@
+# Build outputs
+/build/
+/dist/
+/out/
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+*.wasm
+/malmoi
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Frontend
+node_modules/
+web/dist/
+
+# Large dictionary inputs and derived artifacts (do not commit third-party corpora)
+/dictjson/
+/data/raw/
+/data/processed/
+/data/cache/
+/data/index/
+/models/
+/artifacts/
+/checkpoints/
+*.npy
+*.npz
+*.joblib
+*.onnx
+*.safetensors
+*.pt
+*.pth
+*.bin
+*.gguf
+*.faiss
+
+# Generated, possibly very large experiment outputs
+/experiments/runs/
+/experiments/cache/
+/experiments/outputs/
+*.prof
+*.profraw
+
+# Local environment and OS files
+.env
+.env.*
+!.env.example
+.DS_Store
+*~
+*.swp
+
+# Small checked-in binary test fixtures, when their origin/license is documented
+!/tests/fixtures/*.bin
