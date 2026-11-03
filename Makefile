@@ -60,3 +60,8 @@ demo-c: $(BUILD_DIR)/sense_demo$(EXEEXT) fixture
 	$(BUILD_DIR)/sense_demo$(EXEEXT) build/fixtures/dev-1000.mlm
 demo-d: $(BUILD_DIR)/game_demo$(EXEEXT) fixture
 	$(BUILD_DIR)/game_demo$(EXEEXT) build/fixtures/dev-1000.mlm
+
+.PHONY: python-tools-test
+python-tools-test:
+	$(PYTHON3) -m unittest discover -s tests -p 'test_python_tools.py' -v
+	$(PYTHON3) -m unittest discover -s tests -p 'test_export_e5.py' -v

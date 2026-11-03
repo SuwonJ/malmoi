@@ -22,3 +22,5 @@ make
 설명 검색은 뜻풀이의 문자 1–3그램 코사인이고, 단어 검색·단어 점수는 MLM의 저장 벡터 코사인입니다. E5 의미 검색과 점수 체계가 다릅니다.
 
 빌드는 C11 컴파일러와 make, 테스트(`make test`)는 Python 표준 라이브러리만 사용합니다. 배포 시에는 운영체제에 맞춰 빌드한 실행 파일과 MLM만 전달합니다.
+
+선택 Python 도구: `tools/extract_dictionary.py`(원본 JSON→JSONL), `tools/lexical_search.py`(문자 TF-IDF 역색인 검색), `tools/export_e5.py`(검증된 기존 캐시→MLM). C 실행과 독립적이며 사용법은 [API 설명](docs/API.md#선택-python-도구)을 따릅니다.
