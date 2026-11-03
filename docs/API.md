@@ -80,3 +80,40 @@ MinGW 예제 빌드에는 `-municode`가 필요합니다. 운영체제별 실행
 `include/vecdb.h`에는 단어·뜻풀이·벡터 조회와 내적·코사인 함수가 있습니다. `vecdb_open` → 조회/계산 → `vecdb_close` 순서로 사용합니다. 조회 문자열과 벡터는 DB 소유입니다. 벡터 비교는 같은 차원과 동일한 공간 descriptor가 필요합니다.
 
 MLM v1은 little-endian 헤더, metadata/공간 descriptor, word·sense 레코드로 구성됩니다. 작성·검증은 `tools/prepare.py`, 작은 입력 예시는 `tests/fixtures/small.mlm.jsonl`과 `.spaces.json`을 사용합니다. 로더는 최대 512 MiB 파일을 지원합니다. word/sense 공간은 별개이며, 벡터가 없는 공간 조회는 UNSUPPORTED입니다. synthetic 예제와 실제 데이터의 벡터 제공 범위를 구분합니다.
+
+## 선택 Python 도구
+
+C 실행과 별개로 데이터 제작·검색에 재사용할 수 있는 도구입니다. 연구 보고서·평가 러너·모델 다운로드 코드는 포함하지 않습니다.
+
+### 원본 사전 추출 · 표준 라이브러리
+
+```bash
+python tools/extract_dictionary.py --source /path/to/dictjson --output /path/to/dictionary.jsonl
+```
+
+원본의 word/definition/id/word_type/pos/sense_type을 JSONL로 추출합니다. 단어·뜻풀이가 없는 항목은 제외하고 입력 파일을 덮어쓰지 않습니다. 변환 실패 시 기존 출력은 유지합니다. 검색용 정규화와 고유어 필터는 검색 단계에서 적용합니다.
+
+### 문자 TF-IDF 역색인 검색 · 선택 의존성
+
+```bash
+python -m pip install -r tools/requirements.txt
+python tools/lexical_search.py --dictionary /path/to/dictionary.jsonl --query "아주 조금 내리는 비"
+```
+
+연구에서 사용한 문자 2–4그램·sublinear TF·L2·float32 TF-IDF와 term→document CSR 인덱스를 추렸습니다. 기본 min_df는 작은 사전에서도 쓰도록 1이며 연구 설정 2는 `--min-df 2`로 지정합니다. 기본 최대 특징 수는 200,000입니다. `--query`를 반복하면 인덱스를 한 번 만들어 재사용합니다. 고유어만 읽으며 `--word-type all`로 전체를 읽습니다.
+
+Python 모듈로는 `from tools.lexical_search import LexicalSearch, load_records` 후 `engine = LexicalSearch(load_records(path))`, `engine.search(text, k=10)`으로 호출합니다. 반환 dict에는 원문·정규화 키·출처 ID·뜻풀이·점수가 있습니다. 같은 키는 최고 점수 하나만 반환하고 0점은 제외합니다. 동점은 원본 레코드 순서입니다. 질의와 문서는 NFC로 정규화합니다.
+
+이 Python TF-IDF 인덱스는 C 검색에 연결된 것이 아니며 C의 문자 1–3그램 점수와 다릅니다. ONNX·모델 다운로드 없이 사용할 수 있지만 NumPy·scikit-learn은 선택 설치해야 합니다.
+
+### 검증한 기존 E5 캐시 → MLM · NumPy
+
+```bash
+python tools/export_e5.py --dictionary /path/to/dictionary.jsonl --cache /path/to/cache.npy --manifest /path/to/completed-run/manifest.json --model /path/to/existing-model --output /path/to/dictionary.mlm --limit 10000
+```
+
+완료된 연구 캐시와 원본 manifest가 이미 있을 때 사용합니다. 사전·캐시·가중치·토크나이저의 해시와 완료 상태를 확인하고, 중복 뜻풀이의 벡터 매핑을 유지해 MLM word 위치에 저장합니다. sense 벡터는 중복 저장하지 않습니다. 원본 순서의 앞부분을 선택하며 필요한 표제어만 `--include-word WORD`로 우선 포함할 수 있습니다.
+
+ONNX 런타임이나 모델 추론을 실행하지 않습니다. 출처 검증에는 기존 모델 파일이 필요하고 새 데이터는 인코딩하지 못합니다. 여기서 만든 벡터는 C의 단어 유사어·점수 계산에 쓰이며, C 설명 검색은 계속 문자 기반입니다.
+
+`make python-tools-test PYTHON3=/path/to/python`으로 선택 도구만 검사합니다. 모델과 외부 사전을 내려받지 않는 작은 테스트를 사용합니다.
