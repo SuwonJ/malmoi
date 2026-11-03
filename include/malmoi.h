@@ -1,0 +1,54 @@
+#ifndef MALMOI_H
+#define MALMOI_H
+#include <stddef.h>
+#include <stdint.h>
+
+#if defined(_WIN32) && defined(VECDB_BUILD_DLL)
+#define MALMOI_API __declspec(dllexport)
+#else
+#define MALMOI_API
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct Malmoi Malmoi;
+typedef struct {
+    uint32_t word_id;  /* valid for this engine's dataset only */
+    const char *word;  /* original spelling, read-only */
+    const char *key;   /* normalized word */
+    float score;       /* search: lexical [0,1]; word similarity: embedding [-1,1] */
+} MalmoiResult;
+
+enum MalmoiStatus {
+    MALMOI_OK=0, MALMOI_ARGUMENT, MALMOI_IO, MALMOI_FORMAT, MALMOI_MEMORY,
+    MALMOI_RANGE, MALMOI_NOT_FOUND, MALMOI_AMBIGUOUS, MALMOI_SPACE,
+    MALMOI_ZERO_VECTOR, MALMOI_LIMIT, MALMOI_UNSUPPORTED, MALMOI_CONFIG
+};
+
+/* Native C only. Reads data/dictionary.mlm; owner may set MALMOI_DATA to
+ * another UTF-8 file path. No model, Python, ONNX or network is used.
+ * Open once and reuse; close after all calls. Failure clears *out.
+ * Dataset replacement takes effect on the next open, without caller changes.
+ * Concurrent read calls are allowed; close must not race with calls. */
+MALMOI_API int malmoi_open(Malmoi **out);
+MALMOI_API void malmoi_close(Malmoi *engine);
+
+/* NFC UTF-8 description -> words, sorted by definition character overlap.
+ * This score is lexical cosine [0,1], separate from embedding similarity.
+ * Caller allocates out[k]. count is actual results, cleared on failure.
+ * Returned strings belong to engine, valid until malmoi_close.
+ * k=0/out=NULL is allowed. Text is limited to 8192 UTF-8 bytes. */
+MALMOI_API int malmoi_search(const Malmoi *engine,const char *text,
+                            MalmoiResult *out,size_t k,size_t *count);
+/* Existing NFC word -> similar words, excluding its own normalized key. */
+MALMOI_API int malmoi_similar(const Malmoi *engine,const char *word,
+                             MalmoiResult *out,size_t k,size_t *count);
+/* Two existing words -> max sense-pair cosine. Unknown words are errors. */
+MALMOI_API int malmoi_similarity(const Malmoi *engine,const char *a,const char *b,float *score);
+MALMOI_API const char *malmoi_error_string(int status);
+
+#ifdef __cplusplus
+}
+#endif
+#endif

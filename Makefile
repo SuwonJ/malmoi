@@ -1,87 +1,62 @@
-PYTHON ?= research/.venv/bin/python
-RESEARCH_PYTHON = $(abspath $(PYTHON))
 PYTHON3 ?= python3
 CC ?= cc
 AR ?= ar
-CFLAGS ?= -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror
 CPPFLAGS ?= -Iinclude
+CFLAGS ?= -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror
 LDLIBS ?= -lm
-EXAMPLE_LDFLAGS ?=
 BUILD_DIR ?= build/core
 EXEEXT ?=
+EXAMPLE_LDFLAGS ?=
 ifeq ($(OS),Windows_NT)
 EXEEXT = .exe
 EXAMPLE_LDFLAGS = -municode
 endif
-
-CORE_TEST = $(BUILD_DIR)/test_vecdb$(EXEEXT)
-INSPECT = $(BUILD_DIR)/inspect$(EXEEXT)
-FIXTURE = build/fixtures/dev-1000.mlm
-
-.PHONY: help setup setup-advanced test smoke experiment
-
-help:
-	@echo 'make setup          Python 기본 실험 환경 설치'
-	@echo 'make setup-advanced 형태소·ONNX 모델 실험 의존성 추가'
-	@echo 'make test           단위 테스트 (모델 다운로드 없음)'
-	@echo 'make smoke          예제 사전으로 검색·평가 전체 흐름 실행'
-	@echo 'make experiment     로컬 전체 사전으로 어휘 검색 비교'
-	@echo 'make core-test      C 로더·Python 호환성 테스트 (Python 표준 라이브러리만 사용)'
-	@echo 'make demo-b/c/d     각 담당자용 C API 호출 예제'
-	@echo 'make sanitize       C Address/UndefinedBehaviorSanitizer 검사'
-
-setup:
-	python3 -m venv research/.venv
-	$(RESEARCH_PYTHON) -m pip install -e ./research
-
-setup-advanced:
-	$(RESEARCH_PYTHON) -m pip install -e './research[advanced]'
-
-test:
-	cd research && $(RESEARCH_PYTHON) -m unittest discover -s tests -v
-
-smoke:
-	cd research && $(RESEARCH_PYTHON) -m src.experiment_suite --data tests/fixtures/dictionary.jsonl --benchmark tests/fixtures/benchmark.json --dimensions --repeats 1 --output ../build/smoke
-
-experiment:
-	cd research && $(RESEARCH_PYTHON) -m src.experiment_suite
-
-.PHONY: core fixture core-test demo-b demo-c demo-d sanitize check
-
+SOURCES = src/vecdb.c src/malmoi.c src/internal/search_backend.c src/internal/lexical.c
+OBJECTS = $(BUILD_DIR)/vecdb.o $(BUILD_DIR)/malmoi.o $(BUILD_DIR)/search_backend.o $(BUILD_DIR)/lexical.o
+HEADERS = include/vecdb.h include/malmoi.h src/internal/search_backend.h src/internal/lexical.h
+.PHONY: all core search-cli test core-test search-test fixture sanitize check demo-b demo-c demo-d
+all: search-cli
 $(BUILD_DIR):
-	$(PYTHON3) -c "from pathlib import Path; Path('$(BUILD_DIR)').mkdir(parents=True, exist_ok=True)"
-
-$(BUILD_DIR)/%$(EXEEXT): examples/%.c src/vecdb.c include/vecdb.h examples/demo_utils.h examples/cli_args.h | $(BUILD_DIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) src/vecdb.c $< $(LDFLAGS) $(EXAMPLE_LDFLAGS) $(LDLIBS) -o $@
-
-$(CORE_TEST): tests/test_vecdb.c src/vecdb.c include/vecdb.h | $(BUILD_DIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) src/vecdb.c $< $(LDFLAGS) $(LDLIBS) -o $@
-
-$(BUILD_DIR)/vecdb.o: src/vecdb.c include/vecdb.h | $(BUILD_DIR)
+ifeq ($(OS),Windows_NT)
+	if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
+else
+	mkdir -p "$(BUILD_DIR)"
+endif
+$(BUILD_DIR)/vecdb.o: src/vecdb.c $(HEADERS) | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-
-$(BUILD_DIR)/libmalmoi.a: $(BUILD_DIR)/vecdb.o
-	$(AR) rcs $@ $<
-
-core: $(BUILD_DIR)/libmalmoi.a $(INSPECT) $(CORE_TEST)
-
+$(BUILD_DIR)/malmoi.o: src/malmoi.c $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/search_backend.o: src/internal/search_backend.c $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/lexical.o: src/internal/lexical.c $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/libmalmoi.a: $(OBJECTS)
+	$(RM) $@
+	$(AR) rcs $@ $^
+$(BUILD_DIR)/malmoi_cli$(EXEEXT): examples/malmoi_cli.c examples/cli_args.h $(BUILD_DIR)/libmalmoi.a
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(BUILD_DIR)/libmalmoi.a $(LDFLAGS) $(EXAMPLE_LDFLAGS) $(LDLIBS) -o $@
+$(BUILD_DIR)/%$(EXEEXT): examples/%.c src/vecdb.c $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) src/vecdb.c $< $(LDFLAGS) $(EXAMPLE_LDFLAGS) $(LDLIBS) -o $@
+$(BUILD_DIR)/test_vecdb$(EXEEXT): tests/test_vecdb.c src/vecdb.c $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) src/vecdb.c $< $(LDFLAGS) $(LDLIBS) -o $@
+$(BUILD_DIR)/test_search$(EXEEXT): tests/test_search.c src/vecdb.c src/internal/search_backend.c src/internal/lexical.c $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) src/vecdb.c src/internal/search_backend.c src/internal/lexical.c $< $(LDFLAGS) $(LDLIBS) -o $@
+search-cli: $(BUILD_DIR)/malmoi_cli$(EXEEXT)
+core: search-cli $(BUILD_DIR)/inspect$(EXEEXT) $(BUILD_DIR)/test_vecdb$(EXEEXT)
 fixture:
-	$(PYTHON3) tools/make_fixture.py --count 1000 --output $(FIXTURE) --export-input
-
-core-test: core fixture
-	$(CORE_TEST) $(FIXTURE)
-	$(PYTHON3) tests/test_compatibility.py --inspect $(INSPECT)
-
-demo-b: $(BUILD_DIR)/word_demo$(EXEEXT) fixture
-	$(BUILD_DIR)/word_demo$(EXEEXT) $(FIXTURE)
-
-demo-c: $(BUILD_DIR)/sense_demo$(EXEEXT) fixture
-	$(BUILD_DIR)/sense_demo$(EXEEXT) $(FIXTURE)
-
-demo-d: $(BUILD_DIR)/game_demo$(EXEEXT) fixture
-	$(BUILD_DIR)/game_demo$(EXEEXT) $(FIXTURE)
-
+	$(PYTHON3) tools/make_fixture.py --count 1000 --output build/fixtures/dev-1000.mlm --export-input
+search-test: search-cli $(BUILD_DIR)/test_search$(EXEEXT)
+	$(BUILD_DIR)/test_search$(EXEEXT) tests/fixtures/small.mlm
+	$(PYTHON3) -S tests/test_public_api.py --cli $(BUILD_DIR)/malmoi_cli$(EXEEXT)
+core-test: core fixture search-test
+	$(BUILD_DIR)/test_vecdb$(EXEEXT) build/fixtures/dev-1000.mlm
+	$(PYTHON3) -S tests/test_compatibility.py --inspect $(BUILD_DIR)/inspect$(EXEEXT)
+test check: core-test
 sanitize:
 	$(MAKE) core-test BUILD_DIR=build/sanitize CFLAGS="-std=c11 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer" LDFLAGS="-fsanitize=address,undefined"
-
-check: test core-test
+demo-b: $(BUILD_DIR)/word_demo$(EXEEXT) fixture
+	$(BUILD_DIR)/word_demo$(EXEEXT) build/fixtures/dev-1000.mlm
+demo-c: $(BUILD_DIR)/sense_demo$(EXEEXT) fixture
+	$(BUILD_DIR)/sense_demo$(EXEEXT) build/fixtures/dev-1000.mlm
+demo-d: $(BUILD_DIR)/game_demo$(EXEEXT) fixture
+	$(BUILD_DIR)/game_demo$(EXEEXT) build/fixtures/dev-1000.mlm

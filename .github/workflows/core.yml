@@ -46,6 +46,16 @@ jobs:
           if errorlevel 1 exit /b 1
           lib /nologo /OUT:build\core\malmoi.lib vecdb.obj
           if errorlevel 1 exit /b 1
+          cl /nologo /std:c11 /W4 /WX /utf-8 /Iinclude /c src\internal\search_backend.c
+          if errorlevel 1 exit /b 1
+          cl /nologo /std:c11 /W4 /WX /utf-8 /Iinclude /c src\malmoi.c src\internal\lexical.c
+          if errorlevel 1 exit /b 1
+          lib /nologo /OUT:build\core\malmoi.lib vecdb.obj search_backend.obj malmoi.obj lexical.obj
+          if errorlevel 1 exit /b 1
+          cl /nologo /std:c11 /W4 /WX /utf-8 /Iinclude examples\malmoi_cli.c build\core\malmoi.lib /Febuild\core\malmoi_cli.exe
+          if errorlevel 1 exit /b 1
+          cl /nologo /std:c11 /W4 /WX /utf-8 /Iinclude src\vecdb.c src\internal\search_backend.c src\internal\lexical.c tests\test_search.c /Febuild\core\test_search.exe
+          if errorlevel 1 exit /b 1
           cl /nologo /std:c11 /W4 /WX /utf-8 /Iinclude src\vecdb.c examples\inspect.c /Febuild\core\inspect.exe
           if errorlevel 1 exit /b 1
           cl /nologo /std:c11 /W4 /WX /utf-8 /Iinclude src\vecdb.c examples\word_demo.c /Febuild\core\word_demo.exe
@@ -62,6 +72,10 @@ jobs:
           ./build/core/test_vecdb.exe build/fixtures/dev-1000.mlm
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           python tests/test_compatibility.py --inspect build/core/inspect.exe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./build/core/test_search.exe tests/fixtures/small.mlm
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          python -S tests/test_public_api.py --cli build/core/malmoi_cli.exe
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           ./build/core/word_demo.exe build/fixtures/dev-1000.mlm
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
