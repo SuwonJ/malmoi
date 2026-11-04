@@ -1,3 +1,5 @@
+#include "malmoi_bridge.h"
+
 #include "malmoi.h"
 #include "game.h"
 
@@ -123,6 +125,31 @@ static void run_game(const Malmoi *engine) {
     if (!game.won) printf("정답: %s\n", game.answer);
 }
 
+static void run_bridge(const Malmoi *engine) {
+    char from[256], to[256];
+    MalmoiBridgeOptions options;
+    MalmoiStep path[16];
+    size_t count = 0, i;
+    int status;
+
+    if (!read_line("출발 단어: ", from, sizeof(from)) || !from[0]) return;
+    if (!read_line("도착 단어: ", to, sizeof(to)) || !to[0]) return;
+    malmoi_bridge_default_options(&options);
+    status = malmoi_bridge(engine, from, to, &options, path, 16, &count);
+    if (status != MALMOI_OK) {
+        fprintf(stderr, "다리 놓기 오류: %s\n", malmoi_error_string(status));
+        return;
+    }
+    if (!count) {
+        puts("연결을 찾지 못했습니다.");
+        return;
+    }
+    printf("%s", path[0].word);
+    for (i = 1; i < count; ++i)
+        printf(" -> %s (%.3f)", path[i].word, (double)path[i].score);
+    printf("\n");
+}
+
 int main(void) {
     Malmoi *engine = NULL;
     char choice[16];
@@ -140,13 +167,14 @@ int main(void) {
 
     srand((unsigned int)time(NULL));
     while (1) {
-        puts("\nMalmoi\n1. 역방향 사전\n2. 유사어\n3. 말랑이\n0. 종료");
+        puts("\nMalmoi\n1. 역방향 사전\n2. 유사어\n3. 말랑이\n4. 단어 사이 다리 놓기\n0. 종료");
         if (!read_line("선택: ", choice, sizeof(choice))) break;
         if (!strcmp(choice, "0")) break;
         if (!strcmp(choice, "1")) run_search(engine, 0);
         else if (!strcmp(choice, "2")) run_search(engine, 1);
         else if (!strcmp(choice, "3")) run_game(engine);
-        else puts("0~3 중에서 선택하세요.");
+        else if (!strcmp(choice, "4")) run_bridge(engine);
+        else puts("0~4 중에서 선택하세요.");
     }
     malmoi_close(engine);
     return 0;
