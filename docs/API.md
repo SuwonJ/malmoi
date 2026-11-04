@@ -117,3 +117,26 @@ python tools/export_e5.py --dictionary /path/to/dictionary.jsonl --cache /path/t
 ONNX 런타임이나 모델 추론을 실행하지 않습니다. 출처 검증에는 기존 모델 파일이 필요하고 새 데이터는 인코딩하지 못합니다. 여기서 만든 벡터는 C의 단어 유사어·점수 계산에 쓰이며, C 설명 검색은 계속 문자 기반입니다.
 
 `make python-tools-test PYTHON3=/path/to/python`으로 선택 도구만 검사합니다. 모델과 외부 사전을 내려받지 않는 작은 테스트를 사용합니다.
+
+### 전체 E5 캐시 스트리밍 변환
+
+```bash
+python tools/export_e5_full.py --dictionary /path/to/dictionary.jsonl --cache /path/to/e5-cache.npy --manifest /path/to/completed-run/manifest.json --model /path/to/existing-model --output /path/to/dictionary.mlm
+```
+
+전체 고유어 캐시를 SQLite 임시 매핑과 스트리밍으로 변환합니다. NumPy가 필요하고 ONNX 추론은 실행하지 않습니다. 동일한 source ID·내용은 합치며 같은 ID의 내용이 다르면 실패합니다. MLM v1의 512 MiB 제한을 넘으면 실패합니다. 원본·캐시·모델 해시와 완료 상태를 확인합니다.
+
+현재 준비한 전체 데이터는 원본 고유어 266,506행에서 같은 중복 16행을 합친 266,490개 항목·204,632개 정규화 키·384차원입니다. 파일 크기는 445,200,799바이트, SHA-256은 `4ca824a1d8d7aa7a41e40d36cc91bdb1de6409d5292d4058ca04e88c2afb2d03`입니다. 우리말샘의 모든 어종을 포함한 데이터가 아니며 큰 파일·모델은 저장소에 포함하지 않습니다. ID는 기존 부분집합의 ID와 다릅니다.
+
+### ONNX 질의 임베딩 · 팀 개발용 선택 도구
+
+```bash
+python -m pip install -r tools/requirements-onnx.txt
+python tools/embed_query.py --database /path/to/dictionary.mlm --model /path/to/multilingual-e5-small --text "우울하고 답답한 기분" --output query.json
+```
+
+MLM과 일치하는 ONNX·tokenizer.json·download.json을 가진 모델 폴더가 필요합니다. 도구는 파일을 다운로드하지 않습니다. NumPy·ONNX Runtime·tokenizers는 이 도구를 실행하는 Python 환경에만 설치합니다. C 실행의 의존성은 바뀌지 않습니다.
+
+출력 JSON의 vector는 L2 정규화된 384차원 질의 벡터입니다. space는 공간 정보 객체, space_json은 C의 descriptor 대조에 사용할 canonical JSON 문자열입니다. 모델·토크나이저 해시와 revision을 검사하며 query: prefix·attention-mask mean pooling·max_length 128을 사용합니다. 모듈로는 tools를 import 경로에 두고 QueryEncoder(database, model)를 한 번 생성한 뒤 encode(text)를 반복 호출합니다.
+
+현재 malmoi_search는 여전히 문자 기반입니다. 질의 벡터를 공개 C API로 주입하거나 C에서 ONNX를 직접 실행하는 연결은 아직 없으므로, 이 도구가 C 설명 검색을 자동으로 바꾸지는 않습니다. 기존 내부 벡터 검색 또는 별도 역방향 검색 모듈에 연결해야 합니다. 현재 Linux에서 기존 Python E5Encoder와 동일 입력의 벡터가 일치함을 확인했습니다. 다른 운영체제의 ONNX 실행은 별도 확인이 필요합니다.

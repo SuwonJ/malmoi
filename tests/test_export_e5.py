@@ -53,4 +53,29 @@ class ExportTests(unittest.TestCase):
         p=self.cache.with_suffix('.json');state=json.loads(p.read_text());state['completed']=1;p.write_text(json.dumps(state))
         with self.assertRaises(ValueError):self.perform()
 
+    def test_full_stream_matches_existing_small_export(self):
+        from export_e5_full import export_all
+        self.perform()
+        expected=read_db(self.output)
+        with contextlib.redirect_stdout(io.StringIO()):
+            export_all(self.dictionary,self.cache,self.manifest,self.model,self.output)
+        actual=read_db(self.output)
+        self.assertEqual(actual['words'],expected['words'])
+        self.assertEqual(actual['senses'],expected['senses'])
+        self.assertEqual(actual['word_space'],expected['word_space'])
+    def test_full_stream_collapses_identical_source_duplicates(self):
+        from export_e5_full import export_all
+        rows=self.dictionary.read_text(encoding='utf-8').splitlines()
+        self.dictionary.write_text('\n'.join(rows+[rows[-1]])+'\n',encoding='utf-8')
+        source_hash=fingerprint(self.dictionary)
+        state=json.loads(self.cache.with_suffix('.json').read_text());state['data_sha256']=source_hash
+        self.cache.with_suffix('.json').write_text(json.dumps(state))
+        manifest=json.loads(self.manifest.read_text());manifest['data_sha256']=source_hash;manifest['senses']=4
+        self.manifest.write_text(json.dumps(manifest))
+        with contextlib.redirect_stdout(io.StringIO()):
+            result=export_all(self.dictionary,self.cache,self.manifest,self.model,self.output)
+        self.assertEqual(result['word_count'],3)
+        self.assertEqual(result['source_senses'],4)
+        self.assertEqual(result['identical_source_duplicates'],1)
+
 if __name__=='__main__':unittest.main(verbosity=2)
