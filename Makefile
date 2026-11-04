@@ -12,7 +12,7 @@ EXEEXT = .exe
 EXAMPLE_LDFLAGS = -municode
 endif
 SOURCES = src/vecdb.c src/malmoi.c src/internal/search_backend.c src/internal/lexical.c
-OBJECTS = $(BUILD_DIR)/vecdb.o $(BUILD_DIR)/malmoi.o $(BUILD_DIR)/search_backend.o $(BUILD_DIR)/lexical.o
+OBJECTS = $(BUILD_DIR)/vecdb.o $(BUILD_DIR)/malmoi.o $(BUILD_DIR)/search_backend.o $(BUILD_DIR)/lexical.o $(BUILD_DIR)/bridge.o
 HEADERS = include/vecdb.h include/malmoi.h src/internal/search_backend.h src/internal/lexical.h
 .PHONY: all core search-cli test core-test search-test fixture sanitize check demo-b demo-c demo-d
 all: search-cli
@@ -65,3 +65,18 @@ demo-d: $(BUILD_DIR)/game_demo$(EXEEXT) fixture
 python-tools-test:
 	$(PYTHON3) -m unittest discover -s tests -p 'test_python_tools.py' -v
 	$(PYTHON3) -m unittest discover -s tests -p 'test_export_e5.py' -v
+
+
+$(BUILD_DIR)/bridge.o: src/bridge.c include/malmoi_bridge.h $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/bridge_cli$(EXEEXT): examples/bridge_cli.c examples/cli_args.h $(BUILD_DIR)/libmalmoi.a
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(BUILD_DIR)/libmalmoi.a $(LDFLAGS) $(EXAMPLE_LDFLAGS) $(LDLIBS) -o $@
+$(BUILD_DIR)/test_bridge$(EXEEXT): tests/test_bridge.c $(BUILD_DIR)/libmalmoi.a
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(BUILD_DIR)/libmalmoi.a $(LDFLAGS) $(LDLIBS) -o $@
+
+.PHONY: ring-fixture bridge bridge-test
+ring-fixture:
+	$(PYTHON3) tools/make_ring_fixture.py --output build/fixtures/ring.mlm
+bridge: $(BUILD_DIR)/bridge_cli$(EXEEXT)
+bridge-test: ring-fixture $(BUILD_DIR)/test_bridge$(EXEEXT)
+	MALMOI_DATA=build/fixtures/ring.mlm $(BUILD_DIR)/test_bridge$(EXEEXT)
