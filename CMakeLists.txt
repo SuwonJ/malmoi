@@ -34,6 +34,7 @@ add_library(malmoi_core STATIC
     src/vecdb.c
     src/internal/search_backend.c
     src/internal/lexical.c
+    src/bridge.c
 )
 target_include_directories(malmoi_core PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
