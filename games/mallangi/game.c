@@ -5,10 +5,34 @@
 #include "game.h"
 #include "similarity.h"
 
-// 1. 중복 단어 검사
+// 표제어 비교: ASCII '-'와 '^' 제외
+static int same_word(const char a[], const char b[]){
+    while(1){
+        while(*a == '-' || *a == '^'){
+            a++;
+        }
+
+        while(*b == '-' || *b == '^'){
+            b++;
+        }
+
+        if(*a != *b){
+            return 0;
+        }
+
+        if(*a == '\0'){
+            return 1;
+        }
+
+        a++;
+        b++;
+    }
+}
+
+// 이미 제출한 단어인지 검사
 int is_used_word(const GameState *game, const char guess[]){
     for(int i = 0; i < game->usedCount; i++){
-        if(strcmp(guess, game->usedWords[i]) == 0){
+        if(same_word(game->usedWords[i], guess)){
             return 1;
         }
     }
@@ -16,7 +40,12 @@ int is_used_word(const GameState *game, const char guess[]){
     return 0;
 }
 
-// 2. 랜덤 카드 추첨
+// 정답 여부 검사
+int is_correct_answer(const GameState *game, const char guess[]){
+    return same_word(game->answer, guess);
+}
+
+// 중복 없는 카드 추첨
 void draw_cards(int cards[], int cardCount, int wordCount){
     if(cards == NULL || cardCount < 0 ||
        wordCount <= 0 || cardCount > wordCount){
@@ -37,20 +66,17 @@ void draw_cards(int cards[], int cardCount, int wordCount){
                     break;
                 }
             }
-        }while(duplicate == 1);
+        }while(duplicate);
 
         cards[i] = pick;
     }
 }
 
-// 3. 정답 여부 확인
-int is_correct_answer(const GameState *game, const char guess[]){
-    return strcmp(game->answer, guess) == 0;
-}
-
-// 4. 오답 기록 및 제출 횟수 감소
+// 오답 기록 및 남은 기회 차감
 void record_wrong_guess(GameState *game, const char guess[]){
-    if(game->usedCount >= 5 || game->attempts <= 0){
+    if(game->finished ||
+       game->usedCount >= MALLANGI_MAX_ATTEMPTS ||
+       game->attempts <= 0){
         return;
     }
 
@@ -58,9 +84,13 @@ void record_wrong_guess(GameState *game, const char guess[]){
 
     game->usedCount++;
     game->attempts--;
+
+    if(game->attempts == 0){
+        game->finished = 1;
+    }
 }
 
-// 5. 정답 제출 통합 처리
+// 정답 제출 통합 처리
 GameResult submit_guess(GameState *game, const char guess[]){
     GameResult result = {
         .status = GUESS_ERROR,
@@ -69,23 +99,20 @@ GameResult submit_guess(GameState *game, const char guess[]){
     };
 
     // 입력 검사
-    if(game == NULL || guess == NULL){
+    if(game == NULL || guess == NULL ||
+       guess[0] == '\0' ||
+       strlen(guess) >= MALLANGI_WORD_BYTES){
         result.status = GUESS_INVALID;
         return result;
     }
 
-    if(guess[0] == '\0' || strlen(guess) >= 64){
-        result.status = GUESS_INVALID;
-        return result;
-    }
-
-    // 이미 종료된 게임인지 확인
-    if(game->attempts <= 0){
+    // 게임 종료 여부
+    if(game->finished || game->attempts <= 0){
         result.status = GUESS_FINISHED;
         return result;
     }
 
-    // 중복 검사
+    // 중복 단어 검사
     if(is_used_word(game, guess)){
         result.status = GUESS_DUPLICATE;
         return result;
@@ -93,64 +120,47 @@ GameResult submit_guess(GameState *game, const char guess[]){
 
     // 정답 검사
     if(is_correct_answer(game, guess)){
+        game->finished = 1;
+        game->won = 1;
+
         result.status = GUESS_CORRECT;
         return result;
     }
 
-    // 실제 엔진 사용
-    if(game->engine != NULL){
-        float score = 0.0f;
-
-        int status = game_similarity(
-            game->engine,
-            game->answer,
-            guess,
-            &score
-        );
-
-        if(status == MALMOI_NOT_FOUND){
-            result.status = GUESS_UNKNOWN;
-            return result;
-        }
-
-        if(status != MALMOI_OK){
-            result.status = GUESS_ERROR;
-            result.engineStatus = status;
-            return result;
-        }
-
-        result.similarity = score;
+    // 엔진 연결 확인
+    if(game->engine == NULL){
+        result.engineStatus = MALMOI_CONFIG;
+        return result;
     }
-    else{
-        // Mock 데이터 사용
-        int found = 0;
 
-        if(game->mockWords == NULL ||
-           game->mockScores == NULL ||
-           game->mockWordCount <= 0){
-            result.status = GUESS_ERROR;
-            result.engineStatus = MALMOI_CONFIG;
-            return result;
-        }
+    // 실제 코사인 유사도 계산
+    float score = 0.0f;
 
-        for(int i = 0; i < game->mockWordCount; i++){
-            if(strcmp(guess, game->mockWords[i]) == 0){
-                result.similarity = game->mockScores[i];
-                found = 1;
-                break;
-            }
-        }
+    int status = game_similarity(
+        game->engine,
+        game->answer,
+        guess,
+        &score
+    );
 
-        if(found == 0){
-            result.status = GUESS_UNKNOWN;
-            return result;
-        }
+    // 미등록 단어 및 유효하지 않은 벡터
+    if(status == MALMOI_NOT_FOUND ||
+       status == MALMOI_ZERO_VECTOR){
+        result.status = GUESS_UNKNOWN;
+        return result;
+    }
+
+    // 기타 엔진 오류
+    if(status != MALMOI_OK){
+        result.engineStatus = status;
+        return result;
     }
 
     // 정상적인 오답만 기록
     record_wrong_guess(game, guess);
 
     result.status = GUESS_WRONG;
+    result.similarity = score;
 
     return result;
 }
