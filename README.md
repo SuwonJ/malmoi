@@ -1,26 +1,30 @@
-# malmoi
+# Malmoi — 말모이
 
-MLM 사전 데이터를 읽어 설명 검색·유사어 목록·단어 유사도 점수를 제공하는 C11 모듈입니다. 실행에는 Python·ONNX·모델 파일·네트워크가 필요하지 않습니다.
+설명으로 우리말 찾기(역방향 사전), 유사어 검색, 말랑이 게임을 위한 C11 프로젝트입니다. 검색 실행에는 Python·ONNX·네트워크가 필요하지 않습니다.
+
+## 시작하기 (CLion / CMake)
+
+프로젝트 루트를 CLion에서 열거나 다음 명령을 실행합니다.
 
 ```bash
-make
-./build/core/malmoi_cli query "작은 물방울로 조용히 내리는 비"
-./build/core/malmoi_cli word "먼지잼"
-./build/core/malmoi_cli pair "먼지잼" "이슬비"
+cmake -S . -B build/cmake -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/cmake
+./build/cmake/malmoi
 ```
 
-`data/dictionary.mlm`은 직접 작성한 작은 synthetic 예제입니다. 실제 사전 정확도를 나타내지 않습니다. 실제 MLM은 담당자가 `MALMOI_DATA` 환경 변수로 지정합니다. 팀원 함수에는 모델 선택 인자가 없습니다.
+Windows에서는 `build/cmake/Debug/malmoi.exe` 또는 사용한 CMake 생성기의 출력 경로에서 실행합니다. **작업 디렉터리를 저장소 루트로 지정**하세요. 기본 사전 경로가 `data/dictionary.mlm`이기 때문입니다.
 
-[API 설명](docs/API.md) · [공개 헤더](include/malmoi.h) · [C 호출 예제](examples/malmoi_cli.c)
+메뉴에서 `1` 역방향 사전, `2` 유사어, `3` 말랑이를 선택할 수 있습니다. 게임의 데모 정답은 `이슬비`이며, `MALLANGI_ANSWER` 환경 변수로 바꿀 수 있습니다. 이는 임시 실행 메뉴이고 최종 GUI는 아직 결정되지 않았습니다.
 
-- `include/`: 공개 헤더
-- `src/`: C 로더·검색 구현
-- `examples/`: 모듈 호출 예제
-- `data/`: 즉시 실행용 작은 MLM
-- `tests/`, `tools/`: 검사·MLM 작성기
+저장소의 `data/dictionary.mlm`은 아주 작은 **합성 예제 데이터**입니다. 실제 사전의 품질을 나타내지 않습니다. 실제 데이터는 `MALMOI_DATA=/path/to/dictionary.mlm`로 선택할 수 있습니다.
 
-설명 검색은 뜻풀이의 문자 1–3그램 코사인이고, 단어 검색·단어 점수는 MLM의 저장 벡터 코사인입니다. E5 의미 검색과 점수 체계가 다릅니다.
+## 구조와 문서
 
-빌드는 C11 컴파일러와 make, 테스트(`make test`)는 Python 표준 라이브러리만 사용합니다. 배포 시에는 운영체제에 맞춰 빌드한 실행 파일과 MLM만 전달합니다.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): 전체 구조, 파일 소유 경계, **주요 변수와 정보의 흐름**, 결정 사항/미결정 사항
+- [`docs/API.md`](docs/API.md): `malmoi.h` 공개 함수의 인자·반환값·오류 규약
+- `include/`: 공개 C 헤더 / `src/`: 공통 C 엔진과 기본 진입점
+- `games/mallangi/`: 게임 담당자 코드(위치 유지)
+- `tools/`: 오프라인 데이터 생성 도구(Python)
+- `tests/`, `examples/`: 기존 회귀 검증 및 호환 코드(CMake 기본 앱에는 포함하지 않음)
 
-선택 Python 도구: `tools/extract_dictionary.py`(원본 JSON→JSONL), `tools/lexical_search.py`(문자 TF-IDF 역색인 검색), `tools/export_e5.py`(검증된 기존 캐시→MLM). C 실행과 독립적이며 사용법은 [API 설명](docs/API.md#선택-python-도구)을 따릅니다.
+기존 GitHub Actions는 아직 Makefile을 사용합니다. `make test`로 회귀 검증할 수 있으며, CMake 빌드로 CI를 전환하기 전까지 Makefile과 테스트 코드를 삭제하지 않습니다.

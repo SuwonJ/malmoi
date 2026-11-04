@@ -33,3 +33,10 @@ __pycache__/
 *.swp
 
 /malmoi
+
+# IDE and CMake-generated files
+/.idea/
+/cmake-build-*/
+/compile_commands.json
+/CMakeFiles/
+/CMakeCache.txt
