@@ -9,6 +9,9 @@
 /data/*
 !/data/dictionary.mlm
 !/data/dictionary.mlm.json
+!/data/full/
+!/data/full/*.mlmchunk
+!/data/full/manifest.cmake
 *.o
 *.obj
 *.a
@@ -40,3 +43,4 @@ __pycache__/
 /compile_commands.json
 /CMakeFiles/
 /CMakeCache.txt
+/CMakeUserPresets.json

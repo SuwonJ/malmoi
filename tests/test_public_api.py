@@ -19,6 +19,7 @@ class PublicApiTests(unittest.TestCase):
         self.database=self.folder/'dictionary.mlm'
         self.database.write_bytes((ROOT/'data/dictionary.mlm').read_bytes())
         self.environment={**os.environ,'MALMOI_DATA':str(self.database),'PATH':''}
+        self.environment.pop('MALMOI_MODEL',None)
     def invoke(self,*args,env=None,cwd=None):
         result=subprocess.run([str(CLI),*args],cwd=cwd or self.folder,capture_output=True,
                               encoding='utf-8',env=env or self.environment,timeout=15)
@@ -41,6 +42,10 @@ class PublicApiTests(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(result.stdout.splitlines()[0].split('\t')[1],'이슬비')
         self.assertNotIn('\t먼지잼\t',result.stdout)
+    def test_explicit_model_requires_optional_build(self):
+        result=self.invoke('query','rain',env={**self.environment,'MALMOI_MODEL':'missing-model'})
+        self.assertEqual(result.returncode,12)
+        self.assertIn('invalid encoder configuration',result.stderr)
     def test_owner_replaces_mlm_without_rebuilding_caller(self):
         before=hashlib.sha256(CLI.read_bytes()).hexdigest()
         a=self.invoke('pair','먼지잼','이슬비')

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "configurePresets": [
+    {
+      "name": "native",
+      "displayName": "MLM only (no Python/ONNX)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MALMOI_WITH_E5": "OFF"
+      }
+    },
+    {
+      "name": "e5",
+      "displayName": "Optional E5 semantic search",
+      "inherits": "native",
+      "binaryDir": "${sourceDir}/build/e5",
+      "cacheVariables": { "MALMOI_WITH_E5": "ON" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "native", "configurePreset": "native" },
+    { "name": "e5", "configurePreset": "e5" }
+  ]
+}

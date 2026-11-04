@@ -180,6 +180,7 @@ int malmoi_search_text(const MalmoiSearch *s,const char *text,MalmoiResult *out,
     if (!count) return VECDB_ARGUMENT;
     *count=0;
     if (!s || !valid_text(text) || (k && !out)) return VECDB_ARGUMENT;
+    if (strlen(text)>8192) return VECDB_LIMIT;
     if (!k) return VECDB_OK;
     if (!s->encoder.encode) return VECDB_UNSUPPORTED;
     q=(float *)calloc(s->dimension,sizeof(float));

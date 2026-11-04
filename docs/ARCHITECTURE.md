@@ -5,7 +5,7 @@
 ## 1. 지금 무엇을 만들고 있나
 
 - **세 기능:** 설명으로 단어 찾기(역방향 사전), 단어로 유사어 찾기, 말랑이 유사도 게임.
-- **계산 주체:** C11 엔진. 사용자 실행 중 Python, ONNX, 네트워크를 요구하지 않는다.
+- **계산 주체:** 기본은 C11 엔진으로 Python, ONNX, 네트워크를 요구하지 않는다. 선택 E5 빌드는 프로세스 내부의 Python/ONNX 인코더로 새 설명을 벡터화하며 네트워크는 사용하지 않는다.
 - **데이터:** 별도로 생성한 `.mlm`에 표제어·뜻풀이·미리 계산한 임베딩이 들어 있다. 신경망 모델 자체가 저장된 것은 아니다.
 - **UI:** [Figma 원안](https://www.figma.com/design/qPAloPFOBlIWVaWvmZVFfY/malmoi)은 존재하지만, 구현 프레임워크와 로컬/원격 배치는 **미결정**이다.
 - **기본 실행:** CLion/CMake의 `malmoi`는 `src/main.c`를 통해 메뉴를 표시한다. 기존 Makefile 예제와 게임 단독 `main`은 CI·호환성 검사용으로 당분간 보존하며, CMake 기본 빌드에는 포함하지 않는다.
@@ -19,6 +19,7 @@ flowchart TB
     API --> Facade["src/malmoi.c — 엔진 생성 및 함수 연결"]
     Facade --> Search["src/internal/search_backend.c — 검색·순위"]
     Search --> Lex["src/internal/lexical.c — 문자 n-gram"]
+    Search -. "선택 E5 질의 인코딩" .-> E5["e5_encoder.c → Python QueryEncoder → ONNX"]
     Search --> Vec["src/vecdb.c — MLM 조회"]
     Lex -. "뜻풀이 자료 이용" .-> Vec
     Vec --> DB[("dictionary.mlm")]
@@ -122,7 +123,7 @@ sequenceDiagram
     App->>Facade: malmoi_search(engine, text, out, k, &count)
     Facade->>Search: malmoi_search_definitions(search, text, ...)
     Search->>Lex: malmoi_grams(text)
-    Note over Search,Lex: 현재는 문자 1~3그램 빈도/코사인, TF-IDF 아님
+    Note over Search,Lex: 기본 모드는 문자 1~3그램 빈도/코사인, TF-IDF 아님
     loop 사전 뜻풀이 각각
         Search->>Lex: 질의와 뜻풀이 n-gram 코사인 비교
         Search->>DB: 뜻풀이의 word_id/표제어 조회
@@ -131,7 +132,9 @@ sequenceDiagram
     Search-->>App: out[0..count-1] / score [0,1]
 ```
 
-**실제 데이터 이동:** `text`(UTF-8) → 질의의 문자 조각 목록 → 각 뜻풀이에서 미리 준비한 문자 조각 목록과 비교 → 뜻풀이의 `word_id`로 표제어 연결 → 같은 정규화 `key`의 중복 제거 → `MalmoiResult` 배열. 현재 C에서는 E5를 호출하지 않으며 **TF-IDF도 아직 없다**. Python의 `tools/lexical_search.py`만 별도로 2~4그램 TF-IDF/역색인을 구현한다.
+**기본 모드의 데이터 이동:** `text`(UTF-8) → 질의의 문자 조각 목록 → 각 뜻풀이에서 미리 준비한 문자 조각 목록과 비교 → 뜻풀이의 `word_id`로 표제어 연결 → 같은 정규화 `key`의 중복 제거 → `MalmoiResult` 배열. C 문자 검색에는 TF-IDF가 없다. Python의 `tools/lexical_search.py`만 별도로 2~4그램 TF-IDF/역색인을 구현한다.
+
+**선택 E5 모드:** `MALMOI_WITH_E5=ON` 빌드에서 `MALMOI_MODEL`을 지정하면 `src/internal/e5_encoder.c`가 `tools/embed_query.py`의 `QueryEncoder`를 임베딩한다. 사전·모델 해시/revision/공간을 검증한 뒤 `malmoi_search_open()`에 인코더를 전달한다. `malmoi_search()` → `malmoi_search_text()` → 질의 E5 벡터 → MLM word 벡터와 코사인 비교 → key별 최고 점수 → 결과 배열 순서다. 외부 호출자는 `malmoi.h`를 그대로 사용한다. 모델 없는 기본 배포 경로는 유지되며, 선택 빌드에는 Python 공유 라이브러리·NumPy·ONNX Runtime·tokenizers와 일치하는 모델 자산이 추가로 필요하다. 잘못된 명시적 모델 설정은 오류이며 문자 검색으로 자동 전환하지 않는다.
 
 ### 3.4 유사어 및 단어쌍: 단어 → 저장 벡터 비교
 
