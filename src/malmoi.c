@@ -140,6 +140,26 @@ int malmoi_search(const Malmoi *m,const char *text,MalmoiResult *out,size_t k,si
     if (m && m->semantic) return malmoi_search_text(m->search,text,out,k,count);
     return malmoi_search_definitions(m ? m->search : NULL,text,out,k,count);
 }
+size_t malmoi_word_count(const Malmoi *m) {
+    return m ? vecdb_word_count(m->db) : 0;
+}
+int malmoi_word_at(const Malmoi *m, size_t index, MalmoiWord *out) {
+    VecDBWord w;
+    int rc;
+    if (!out) return MALMOI_ARGUMENT;
+    out->id = UINT32_MAX;
+    out->word = NULL;
+    out->key = NULL;
+    if (!m) return MALMOI_ARGUMENT;
+    if (index >= vecdb_word_count(m->db) || index > UINT32_MAX)
+        return MALMOI_RANGE;
+    rc = vecdb_word(m->db, (uint32_t)index, &w);
+    if (rc != VECDB_OK) return rc;
+    out->id = w.id;
+    out->word = w.word;
+    out->key = w.key;
+    return MALMOI_OK;
+}
 const char *malmoi_data_path(const Malmoi *m) { return m ? m->path : NULL; }
 const char *malmoi_search_mode(const Malmoi *m) {
     return m ? (m->semantic ? "e5-semantic" : "lexical") : NULL;
