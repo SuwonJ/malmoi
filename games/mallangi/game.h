@@ -7,14 +7,28 @@
 #define MALLANGI_MAX_ATTEMPTS 5
 #define MALLANGI_WORD_BYTES 64
 
-typedef struct{
+#define MALLANGI_CARD_COUNT 3
+
+typedef struct {
+    char word[MALLANGI_WORD_BYTES];
+    float similarity;
+} MallangiCard;
+
+typedef struct {
     char answer[MALLANGI_WORD_BYTES];
     int attempts;
+
     char usedWords[MALLANGI_MAX_ATTEMPTS][MALLANGI_WORD_BYTES];
     int usedCount;
+
     int finished;
     int won;
+
     const Malmoi *engine;
+
+    // STEP 14-3: 플레이어 카드
+    MallangiCard cards[MALLANGI_CARD_COUNT];
+    int cardCount;
 } GameState;
 
 typedef enum{
@@ -32,6 +46,18 @@ typedef struct{
     double similarity;
     int engineStatus;
 } GameResult;
+
+int assign_player_cards(
+    GameState *game,
+    const MalmoiResult hints[],
+    size_t hintCount
+);
+
+int game_start(
+    GameState *game,
+    const Malmoi *engine,
+    const char *answer
+);
 
 int is_used_word(const GameState *game, const char guess[]);
 int is_correct_answer(const GameState *game, const char guess[]);

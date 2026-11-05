@@ -4,135 +4,146 @@
 #include <string.h>
 #include <time.h>
 
+#include "malmoi.h"
 #include "game.h"
+#include "daily.h"
 
-#define CARD_COUNT 3
-#define HINT_POOL_SIZE 32
+#define INPUT_SIZE 256
 
-int main(void){
-    // 환경 변수에서 오늘의 정답 가져오기
+int main(void) {
+    Malmoi *engine = NULL;
+    GameState game = {0};
+
+    char guess[INPUT_SIZE];
+    int status;
+
+    // 카드 무작위 추첨을 위한 시드 설정
+    srand((unsigned int)time(NULL));
+
+    // 오늘의 정답 설정
     const char *answer = getenv("MALLANGI_ANSWER");
 
-    if(answer == NULL || answer[0] == '\0' ||
-       strlen(answer) >= MALLANGI_WORD_BYTES){
-        fprintf(stderr,
-                "MALLANGI_ANSWER 환경 변수에 정답 단어를 설정하세요.\n");
+    if(answer == NULL || answer[0] == '\0') {
+        answer = daily_answer_kst(time(NULL));
+    }
+
+    // malmoi 엔진 실행
+    status = malmoi_open(&engine);
+
+    if(status != MALMOI_OK) {
+        printf("malmoi 엔진 실행 실패: %d\n", status);
         return 1;
     }
 
-    // 1. 실제 데이터셋 엔진 초기화
-    Malmoi *engine = NULL;
-
-    int status = malmoi_open(&engine);
-
-    if(status != MALMOI_OK){
-        fprintf(stderr,
-                "데이터셋 열기 실패: %s\n",
-                malmoi_error_string(status));
-        return 1;
-    }
-
-    // 2. 게임 상태 초기화
-    GameState game = {
-        .attempts = MALLANGI_MAX_ATTEMPTS,
-        .engine = engine
-    };
-
-    strcpy(game.answer, answer);
-
-    // 3. 실제 엔진에서 유사 단어 가져오기
-    MalmoiResult hints[HINT_POOL_SIZE];
-    size_t hintCount = 0;
-
-    status = malmoi_similar(
-        engine,
-        game.answer,
-        hints,
-        HINT_POOL_SIZE,
-        &hintCount
-    );
-
-    if(status != MALMOI_OK || hintCount < CARD_COUNT){
-        fprintf(stderr,
-                "단어 카드 준비 실패: %s (카드 후보 %zu개)\n",
-                malmoi_error_string(status),
-                hintCount);
-
+    // 게임 시작 및 카드 지급
+    if(!game_start(&game, engine, answer)) {
+        printf("게임 초기화에 실패했습니다.\n");
         malmoi_close(engine);
         return 1;
     }
 
-    // 4. 단어 카드 3장 추첨
-    srand((unsigned int)time(NULL));
-
-    int cards[CARD_COUNT];
-
-    draw_cards(cards, CARD_COUNT, (int)hintCount);
-
-    // 5. 게임 시작
     printf("===== MALLANGI =====\n");
-    printf("오늘의 비밀 단어를 맞혀보세요!\n\n");
+    printf("오늘의 비밀 단어를 맞혀보세요!\n");
 
-    printf("[내 단어 카드]\n");
+    // 플레이어 카드 출력
+    printf("\n[내 단어 카드]\n");
 
-    for(int i = 0; i < CARD_COUNT; i++){
-        const MalmoiResult *hint = &hints[cards[i]];
+    for(int i = 0; i < game.cardCount; i++) {
+        printf("%d번 카드: %s\n",
+               i + 1,
+               game.cards[i].word);
 
-        printf("%d번 카드: %s\n", i + 1, hint->word);
-        printf("유사도: %.2f\n\n", hint->score);
+        printf("유사도: %.2f\n\n",
+               game.cards[i].similarity);
     }
 
-    // 6. 정답 제출
-    char guess[MALLANGI_WORD_BYTES];
-
-    while(!game.finished && game.attempts > 0){
-        printf("\n남은 정답 제출 횟수: %d\n",
-               game.attempts);
-
+    // 게임 진행
+    while(!game.finished) {
+        printf("\n남은 정답 제출 횟수: %d\n", game.attempts);
         printf("정답을 입력하세요: ");
+        fflush(stdout);
 
-        if(scanf("%63s", guess) != 1){
-            printf("입력을 종료합니다.\n");
+        if(fgets(guess, sizeof(guess), stdin) == NULL) {
+            printf("\n입력이 종료되었습니다.\n");
             break;
         }
 
+        // 개행 문자 제거
+        char *newline = strchr(guess, '\n');
+
+        if(newline != NULL) {
+            *newline = '\0';
+        } else {
+            int ch;
+
+            while((ch = getchar()) != '\n' && ch != EOF) {
+            }
+
+            printf("입력한 단어가 너무 깁니다.\n");
+            continue;
+        }
+
+        if(guess[0] == '\0') {
+            printf("단어를 입력해주세요.\n");
+            continue;
+        }
+
+        if(strlen(guess) >= MALLANGI_WORD_BYTES) {
+            printf("입력한 단어가 너무 깁니다.\n");
+            continue;
+        }
+
+        // 정답 제출
         GameResult result = submit_guess(&game, guess);
 
-        if(result.status == GUESS_CORRECT){
-            printf("\n정답입니다!\n");
-            break;
-        }
-        else if(result.status == GUESS_WRONG){
-            printf("틀렸습니다!\n");
-            printf("정답과의 유사도: %.2f\n",
-                   result.similarity);
-        }
-        else if(result.status == GUESS_DUPLICATE){
-            printf("이미 제출한 단어입니다.\n");
-        }
-        else if(result.status == GUESS_UNKNOWN){
-            printf("등록되지 않았거나 유효한 벡터가 없는 단어입니다.\n");
-        }
-        else if(result.status == GUESS_INVALID){
-            printf("잘못된 입력입니다.\n");
-        }
-        else{
-            fprintf(stderr,
-                    "게임 오류: %s\n",
-                    malmoi_error_string(result.engineStatus));
+        switch(result.status) {
+            case GUESS_CORRECT:
+                printf("\n정답입니다!\n");
+                printf("비밀 단어: %s\n", game.answer);
+                printf("축하합니다! 게임에서 승리했습니다.\n");
+                break;
 
-            malmoi_close(engine);
-            return 1;
+            case GUESS_WRONG:
+                printf("틀렸습니다!\n");
+                printf("정답과의 유사도: %.2f\n",
+                       result.similarity);
+                break;
+
+            case GUESS_DUPLICATE:
+                printf("이미 제출한 단어입니다.\n");
+                printf("제출 횟수는 차감되지 않습니다.\n");
+                break;
+
+            case GUESS_UNKNOWN:
+                printf("등록되지 않았거나 유효한 벡터가 없는 단어입니다.\n");
+                break;
+
+            case GUESS_INVALID:
+                printf("올바른 단어를 입력해주세요.\n");
+                break;
+
+            case GUESS_FINISHED:
+                printf("이미 종료된 게임입니다.\n");
+                break;
+
+            case GUESS_ERROR:
+                printf("유사도 계산 중 오류가 발생했습니다: %d\n",
+                       result.engineStatus);
+                break;
+
+            default:
+                printf("알 수 없는 오류가 발생했습니다.\n");
+                break;
         }
     }
 
-    // 7. 실패 시 정답 공개
-    if(!game.won && game.attempts == 0){
+    // 패배 결과 출력
+    if(game.finished && !game.won) {
         printf("\n모든 기회를 사용했습니다.\n");
         printf("정답은 %s입니다.\n", game.answer);
     }
 
-    // 8. 엔진 종료
+    // 엔진 종료
     malmoi_close(engine);
 
     return 0;
