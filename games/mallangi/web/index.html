@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>말랑이 | 오늘의 단어 게임</title>
+
+    <style>
+        :root {
+            --background: #f6f2e9;
+            --surface: #fffefb;
+            --ink: #21362d;
+            --muted: #748078;
+            --line: #dedfd7;
+            --accent: #557763;
+            --accent-soft: #e8efe9;
+            --highlight: #edcf8e;
+            --danger: #a55349;
+            --shadow: 0 18px 50px rgba(41, 56, 48, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        body {
+            min-width: 320px;
+            margin: 0;
+            background:
+                radial-gradient(circle at top right, #efe4c9 0, transparent 28rem),
+                var(--background);
+            color: var(--ink);
+            font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .header {
+            background: rgba(255, 254, 251, 0.92);
+            border-bottom: 1px solid var(--line);
+            backdrop-filter: blur(12px);
+        }
+
+        .header-inner {
+            max-width: 1160px;
+            min-height: 76px;
+            margin: auto;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--ink);
+            color: #f4dfb3;
+            display: grid;
+            place-items: center;
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .brand-name {
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .brand-sub {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 0.08em;
+        }
+
+        .demo-badge,
+        .status-chip {
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .demo-badge {
+            padding: 8px 12px;
+            background: var(--accent-soft);
+            color: #4e705d;
+        }
+
+        .container {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 58px 24px 80px;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            letter-spacing: 2px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .hero h1 {
+            max-width: 720px;
+            margin: 16px 0;
+            font-size: clamp(36px, 5vw, 58px);
+            letter-spacing: -2.6px;
+            line-height: 1.12;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 310px;
+            gap: 24px;
+            margin-top: 40px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .game-panel {
+            padding: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .section-caption {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 22px;
+        }
+
+        .word-card {
+            min-height: 205px;
+            padding: 19px;
+            border: 1px solid #e6e1d5;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #fffdf8, #f7f1e5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-number {
+            color: #869087;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+        }
+
+        .card-word {
+            overflow-wrap: anywhere;
+            text-align: center;
+            font-size: clamp(22px, 2.7vw, 32px);
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .card-bottom {
+            padding-top: 13px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score-label {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .score,
+        .history-score {
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        .score {
+            font-size: 18px;
+        }
+
+        .divider {
+            height: 1px;
+            margin: 34px 0;
+            background: var(--line);
+        }
+
+        .attempts {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .attempt-dot {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--accent);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .attempt-dot.used {
+            background: #dedfd9;
+            transform: scale(0.86);
+        }
+
+        .form {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .word-input {
+            flex: 1;
+            min-width: 0;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            outline: none;
+            background: #fff;
+        }
+
+        .word-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(85, 119, 99, 0.12);
+        }
+
+        .submit-button,
+        .result-button {
+            border: 0;
+            border-radius: 10px;
+            background: var(--ink);
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .submit-button {
+            padding: 0 27px;
+        }
+
+        .submit-button:hover,
+        .result-button:hover {
+            background: #3c5a49;
+        }
+
+        .submit-button:disabled {
+            cursor: default;
+            opacity: 0.45;
+        }
+
+        .feedback {
+            min-height: 24px;
+            margin-top: 13px;
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
+        .feedback.error {
+            color: var(--danger);
+        }
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history-list {
+            margin: 15px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: 32px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 2px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .history-rank {
+            color: #a0a59f;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .history-word {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            font-weight: 700;
+        }
+
+        .history-correct {
+            color: var(--ink);
+        }
+
+        .empty {
+            padding: 22px 0;
+            color: #9a9e98;
+            font-size: 13px;
+        }
+
+        .result-panel {
+            margin-top: 28px;
+            padding: 26px;
+            border: 1px solid #d8dfd8;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #eef4ee, #fff9ea);
+            text-align: center;
+        }
+
+        .result-panel.lost {
+            border-color: #ead9d3;
+            background: linear-gradient(135deg, #fbefeb, #fffaf0);
+        }
+
+        .result-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 13px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .result-panel.lost .result-icon {
+            background: var(--danger);
+        }
+
+        .result-title {
+            margin: 0;
+            font-size: 25px;
+            letter-spacing: -1px;
+        }
+
+        .result-text {
+            margin: 10px 0 0;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .result-answer {
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .result-button {
+            margin-top: 18px;
+            padding: 12px 20px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .side-panel {
+            padding: 24px;
+        }
+
+        .side-title {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .side-text {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.85;
+        }
+
+        .status-chip {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 7px 10px;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .status-chip.finished {
+            background: #f3e7c9;
+            color: #765f2e;
+        }
+
+        .rule {
+            margin-top: 17px;
+        }
+
+        .rule-number {
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .restart {
+            width: 100%;
+            margin-top: 18px;
+            padding: 13px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: transparent;
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .restart:hover {
+            background: #f4f5f0;
+        }
+
+        .notice {
+            padding: 20px;
+            border: 1px solid #e9ddc3;
+            border-radius: 12px;
+            background: #f2ead8;
+            color: #716146;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .footer {
+            padding: 32px 24px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 850px) {
+            .container {
+                padding-top: 42px;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .notice {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-inner {
+                min-height: 66px;
+                padding: 12px 18px;
+            }
+
+            .brand-mark {
+                width: 36px;
+                height: 36px;
+            }
+
+            .brand-sub {
+                display: none;
+            }
+
+            .demo-badge {
+                padding: 7px 9px;
+                font-size: 10px;
+            }
+
+            .container {
+                padding: 34px 16px 56px;
+            }
+
+            .hero h1 {
+                margin: 13px 0;
+                font-size: 38px;
+            }
+
+            .hero p br {
+                display: none;
+            }
+
+            .layout {
+                margin-top: 28px;
+            }
+
+            .game-panel {
+                padding: 18px;
+            }
+
+            .cards,
+            .sidebar {
+                grid-template-columns: 1fr;
+            }
+
+            .word-card {
+                min-height: 140px;
+            }
+
+            .card-word {
+                font-size: 28px;
+            }
+
+            .form {
+                flex-direction: column;
+            }
+
+            .submit-button {
+                min-height: 50px;
+            }
+
+            .result-panel {
+                padding: 23px 16px;
+            }
+
+            .notice {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">ㅁ</div>
+                <div>
+                    <div class="brand-name">말랑이</div>
+                    <div class="brand-sub">MALMOI WORD GAME</div>
+                </div>
+            </div>
+            <span class="demo-badge">DEMO VERSION</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <div class="eyebrow">TODAY'S WORD PUZZLE</div>
+            <h1>세 개의 단서로<br>오늘의 단어를 찾으세요.</h1>
+            <p>
+                단어 카드의 유사도를 살펴보고 비밀 단어를 추리하세요.<br>
+                정답을 제출할 수 있는 기회는 다섯 번입니다.
+            </p>
+        </section>
+
+        <div class="layout">
+            <section class="panel game-panel" aria-label="말랑이 게임">
+                <div class="section-header">
+                    <div class="section-title">나의 단어 카드</div>
+                    <div class="section-caption">3 CARDS</div>
+                </div>
+                <div class="cards" id="cards"></div>
+
+                <div class="divider"></div>
+
+                <div class="section-header">
+                    <div class="section-title">정답 제출</div>
+                    <div class="attempts" id="attempts"></div>
+                </div>
+
+                <form class="form" id="guessForm" novalidate>
+                    <input
+                        class="word-input"
+                        id="guessInput"
+                        type="text"
+                        placeholder="한글 단어를 입력하세요"
+                        maxlength="49"
+                        autocomplete="off"
+                        aria-describedby="feedback"
+                    >
+                    <button class="submit-button" id="submitButton" type="submit">제출</button>
+                </form>
+
+                <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+
+                <div class="history">
+                    <div class="section-header">
+                        <div class="section-title">제출 기록</div>
+                        <div class="section-caption" id="historyCount">0 / 5</div>
+                    </div>
+                    <ol class="history-list" id="historyList"></ol>
+                </div>
+
+                <section class="result-panel" id="resultPanel" tabindex="-1" hidden>
+                    <div class="result-icon" id="resultIcon" aria-hidden="true"></div>
+                    <h2 class="result-title" id="resultTitle"></h2>
+                    <p class="result-text" id="resultText"></p>
+                    <button class="result-button" id="resultRestartButton" type="button">
+                        다시 도전하기
+                    </button>
+                </section>
+            </section>
+
+            <aside class="sidebar">
+                <div class="panel side-panel">
+                    <div class="section-title">오늘의 도전</div>
+                    <p class="side-text" id="todayDate"></p>
+                    <div class="status-chip" id="gameStatus">게임 진행 중</div>
+                    <button class="restart" id="restartButton" type="button">데모 다시 시작</button>
+                </div>
+
+                <div class="panel side-panel">
+                    <div class="side-title">게임 방법</div>
+                    <div class="rule">
+                        <div class="rule-number">01</div>
+                        <div class="side-text">지급된 카드 세 장과 유사도를 확인하세요.</div>
+                    </div>
+                    <div class="rule">
+                        <div class="rule-number">02</div>
+                        <div class="side-text">카드의 공통점을 바탕으로 비밀 단어를 추리하세요.</div>
+                    </div>
+                    <div class="rule">
+                        <div class="rule-number">03</div>
+                        <div class="side-text">중복 및 미등록 단어는 제출 기회를 소모하지 않습니다.</div>
+                    </div>
+                </div>
+
+                <div class="notice">
+                    현재는 화면 테스트용 데모입니다. STEP 16에서 이 데이터 판정 부분을
+                    C 서버와 실제 <code>.mlm</code> 데이터셋 호출로 교체합니다.
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="footer">MALMOI PROJECT · MALLANGI</footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

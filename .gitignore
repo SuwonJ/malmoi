@@ -44,3 +44,13 @@ __pycache__/
 /CMakeFiles/
 /CMakeCache.txt
 /CMakeUserPresets.json
+
+
+games/mallangi/*.so
+games/mallangi/*.sqlite3*
+games/mallangi/backup-*/
+games/mallangi/web.backup-*/
+games/mallangi/*.backup-*
+games/mallangi/__pycache__/
+games/mallangi/quality-report/
+data/full/dictionary-full.mlm

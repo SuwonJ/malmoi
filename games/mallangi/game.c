@@ -1,7 +1,7 @@
-
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-
+#define MALLANGI_HINT_POOL_SIZE 32
 #include "game.h"
 #include "similarity.h"
 
@@ -163,4 +163,114 @@ GameResult submit_guess(GameState *game, const char guess[]){
     result.similarity = score;
 
     return result;
+}
+
+
+
+int assign_player_cards(
+    GameState *game,
+    const MalmoiResult hints[],
+    size_t hintCount
+){
+    int selected[MALLANGI_CARD_COUNT];
+
+    if(game == NULL || hints == NULL){
+        return 0;
+    }
+
+    // 이미 지급한 카드는 다시 뽑지 않는다.
+    if(game->cardCount == MALLANGI_CARD_COUNT){
+        return 1;
+    }
+
+    if(game->cardCount != 0){
+        return 0;
+    }
+
+    // 카드 후보가 3개보다 적으면 지급 불가
+    if(hintCount < MALLANGI_CARD_COUNT || hintCount > INT_MAX){
+        return 0;
+    }
+
+    // 기존 카드 추첨 함수 재사용
+    draw_cards(
+        selected,
+        MALLANGI_CARD_COUNT,
+        (int)hintCount
+    );
+
+    // 단어가 저장 공간에 들어가는지 검사
+    for(int i = 0; i < MALLANGI_CARD_COUNT; i++){
+        const char *word = hints[selected[i]].word;
+
+        if(word == NULL || strlen(word) >= MALLANGI_WORD_BYTES){
+            return 0;
+        }
+    }
+
+    // 선택한 카드 정보를 게임 상태에 저장
+    for(int i = 0; i < MALLANGI_CARD_COUNT; i++){
+        int index = selected[i];
+
+        strcpy(game->cards[i].word, hints[index].word);
+        game->cards[i].similarity = hints[index].score;
+    }
+
+    game->cardCount = MALLANGI_CARD_COUNT;
+
+    return 1;
+}
+
+
+
+
+int game_start(
+    GameState *game,
+    const Malmoi *engine,
+    const char *answer
+) {
+    GameState newGame = {0};
+    MalmoiResult hints[MALLANGI_HINT_POOL_SIZE];
+
+    size_t hintCount = 0;
+    int status;
+
+    // 입력값 검사
+    if(game == NULL || engine == NULL || answer == NULL) {
+        return 0;
+    }
+
+    if(answer[0] == '\0' ||
+       strlen(answer) >= MALLANGI_WORD_BYTES) {
+        return 0;
+    }
+
+    // 새로운 게임 상태 준비
+    strcpy(newGame.answer, answer);
+
+    newGame.attempts = MALLANGI_MAX_ATTEMPTS;
+    newGame.engine = engine;
+
+    // 정답과 유사한 단어 후보 검색
+    status = malmoi_similar(
+        engine,
+        newGame.answer,
+        hints,
+        MALLANGI_HINT_POOL_SIZE,
+        &hintCount
+    );
+
+    if(status != MALMOI_OK) {
+        return 0;
+    }
+
+    // 플레이어 카드 3장 지급
+    if(!assign_player_cards(&newGame, hints, hintCount)) {
+        return 0;
+    }
+
+    // 모든 준비가 성공한 경우 게임 상태 저장
+    *game = newGame;
+
+    return 1;
 }
