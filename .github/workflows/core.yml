@@ -19,6 +19,11 @@ jobs:
           python-version: '3.12'
       - run: ${{ matrix.cc }} --version
       - run: make core-test demo-b demo-c demo-d CC=${{ matrix.cc }}
+      - name: Build standalone gameSH with CMake
+        if: matrix.os == 'ubuntu-latest' && matrix.cc == 'gcc'
+        run: |
+          cmake -S . -B build/ci-wordgame
+          cmake --build build/ci-wordgame --target wordgame_sii
   sanitize:
     runs-on: ubuntu-latest
     steps:
@@ -47,6 +52,13 @@ jobs:
         with:
           python-version: '3.12'
       - uses: ilammy/msvc-dev-cmd@v1
+      - name: Build standalone gameSH with CMake (MSVC)
+        shell: pwsh
+        run: |
+          cmake -S . -B build/ci-wordgame
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build build/ci-wordgame --target wordgame_sii --config Release
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Build C11 core and examples with MSVC
         shell: cmd
         run: |
