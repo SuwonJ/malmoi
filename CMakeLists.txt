@@ -43,7 +43,7 @@ if(NOT WIN32)
     target_link_libraries(malmoi_core PUBLIC m)
 endif()
 
-# One default application for CLion. Existing test/demo entry points are not built.
+# Main team CLI (independent of the standalone games).
 add_executable(malmoi
     src/main.c
     games/mallangi/game.c
@@ -54,14 +54,29 @@ target_include_directories(malmoi PRIVATE
 )
 target_link_libraries(malmoi PRIVATE malmoi_core)
 
-# Team bundles carry the full dataset. Copy it beside the executable so
+# Kim Sihyeon's offline two-player word similarity game.
+# Keep its main() separate; share the same public malmoi_core library.
+add_executable(wordgame_sii
+    gameSH/main.c
+    gameSH/game.c
+    gameSH/word_check.c
+    gameSH/ui.c
+)
+target_include_directories(wordgame_sii PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/gameSH"
+)
+target_link_libraries(wordgame_sii PRIVATE malmoi_core)
+
+# Team bundles carry the full dataset. Copy it beside both executables so
 # launches from CLion, Explorer or an unrelated working directory all work.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/data/full.mlm")
-    add_custom_command(TARGET malmoi POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:malmoi>/data"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/data/full.mlm"
-            "$<TARGET_FILE_DIR:malmoi>/data/dictionary.mlm")
+    foreach(_app IN ITEMS malmoi wordgame_sii)
+        add_custom_command(TARGET ${_app} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${_app}>/data"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/data/full.mlm"
+                "$<TARGET_FILE_DIR:${_app}>/data/dictionary.mlm")
+    endforeach()
 endif()
 
 # Default builds retain the standalone, model-free C API.
