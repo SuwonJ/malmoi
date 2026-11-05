@@ -34,11 +34,20 @@ static char *copy(const char *s) {
     if (p) memcpy(p,s,n);
     return p;
 }
+/* MSVC warns on fopen under /WX; use its checked variant there. */
+static FILE *open_read_binary(const char *path) {
+#ifdef _MSC_VER
+    FILE *f = NULL;
+    return fopen_s(&f, path, "rb") == 0 ? f : NULL;
+#else
+    return fopen(path, "rb");
+#endif
+}
 /* Prefer the full development dataset, then the data shipped beside the app. */
 static char *default_database_path(void) {
     char executable[32768];
     char *slash;
-    FILE *f=fopen("data/full.mlm","rb");
+    FILE *f=open_read_binary("data/full.mlm");
     if (f) { fclose(f); return copy("data/full.mlm"); }
     executable[0]='\0';
 #ifdef _WIN32
@@ -69,8 +78,8 @@ static char *default_database_path(void) {
     }
 #endif
     if (slash && (size_t)(slash-executable)+sizeof("/data/dictionary.mlm")<sizeof(executable)) {
-        strcpy(slash,"/data/dictionary.mlm");
-        f=fopen(executable,"rb");
+        memcpy(slash,"/data/dictionary.mlm",sizeof("/data/dictionary.mlm"));
+        f=open_read_binary(executable);
         if (f) { fclose(f); return copy(executable); }
     }
     return copy("data/dictionary.mlm");
@@ -139,6 +148,26 @@ int malmoi_open(Malmoi **out) {
 int malmoi_search(const Malmoi *m,const char *text,MalmoiResult *out,size_t k,size_t *count) {
     if (m && m->semantic) return malmoi_search_text(m->search,text,out,k,count);
     return malmoi_search_definitions(m ? m->search : NULL,text,out,k,count);
+}
+size_t malmoi_word_count(const Malmoi *m) {
+    return m ? vecdb_word_count(m->db) : 0;
+}
+int malmoi_word_at(const Malmoi *m, size_t index, MalmoiWord *out) {
+    VecDBWord w;
+    int rc;
+    if (!out) return MALMOI_ARGUMENT;
+    out->id = UINT32_MAX;
+    out->word = NULL;
+    out->key = NULL;
+    if (!m) return MALMOI_ARGUMENT;
+    if (index >= vecdb_word_count(m->db) || index > UINT32_MAX)
+        return MALMOI_RANGE;
+    rc = vecdb_word(m->db, (uint32_t)index, &w);
+    if (rc != VECDB_OK) return rc;
+    out->id = w.id;
+    out->word = w.word;
+    out->key = w.key;
+    return MALMOI_OK;
 }
 const char *malmoi_data_path(const Malmoi *m) { return m ? m->path : NULL; }
 const char *malmoi_search_mode(const Malmoi *m) {

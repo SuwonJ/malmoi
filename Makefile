@@ -48,7 +48,10 @@ fixture:
 search-test: search-cli $(BUILD_DIR)/test_search$(EXEEXT)
 	$(BUILD_DIR)/test_search$(EXEEXT) tests/fixtures/small.mlm
 	$(PYTHON3) -S tests/test_public_api.py --cli $(BUILD_DIR)/malmoi_cli$(EXEEXT)
-core-test: core fixture search-test
+$(BUILD_DIR)/test_word_enumeration$(EXEEXT): tests/test_word_enumeration.c $(BUILD_DIR)/libmalmoi.a
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(BUILD_DIR)/libmalmoi.a $(LDFLAGS) $(LDLIBS) -o $@
+core-test: core fixture search-test $(BUILD_DIR)/test_word_enumeration$(EXEEXT)
+	MALMOI_DATA=tests/fixtures/small.mlm $(BUILD_DIR)/test_word_enumeration$(EXEEXT)
 	$(BUILD_DIR)/test_vecdb$(EXEEXT) build/fixtures/dev-1000.mlm
 	$(PYTHON3) -S tests/test_compatibility.py --inspect $(BUILD_DIR)/inspect$(EXEEXT)
 test check: core-test
