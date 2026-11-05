@@ -42,18 +42,6 @@ MALMOI_API void malmoi_close(Malmoi *engine);
 MALMOI_API const char *malmoi_data_path(const Malmoi *engine);
 MALMOI_API const char *malmoi_search_mode(const Malmoi *engine);
 
-/* Enumerate dictionary word records, including multiple records with the
- * same normalized key. Indices [0, count) are stable until malmoi_close.
- * Returned strings are owned by the engine and must not be freed.
- * This is not a frequency-ranked list or a list of unique spellings. */
-typedef struct {
-    uint32_t id;
-    const char *word;
-    const char *key;
-} MalmoiWord;
-MALMOI_API size_t malmoi_word_count(const Malmoi *engine);
-MALMOI_API int malmoi_word_at(const Malmoi *engine, size_t index, MalmoiWord *out);
-
 /* Enumerate dictionary word records in dataset order (not frequency order).
  * A normalized key may occur in more than one record, so sampling records
  * uniformly does not sample distinct words uniformly.
