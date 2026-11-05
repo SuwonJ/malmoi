@@ -34,11 +34,20 @@ static char *copy(const char *s) {
     if (p) memcpy(p,s,n);
     return p;
 }
+/* MSVC warns on fopen under /WX; use its checked variant there. */
+static FILE *open_read_binary(const char *path) {
+#ifdef _MSC_VER
+    FILE *f = NULL;
+    return fopen_s(&f, path, "rb") == 0 ? f : NULL;
+#else
+    return fopen(path, "rb");
+#endif
+}
 /* Prefer the full development dataset, then the data shipped beside the app. */
 static char *default_database_path(void) {
     char executable[32768];
     char *slash;
-    FILE *f=fopen("data/full.mlm","rb");
+    FILE *f=open_read_binary("data/full.mlm");
     if (f) { fclose(f); return copy("data/full.mlm"); }
     executable[0]='\0';
 #ifdef _WIN32
@@ -69,8 +78,8 @@ static char *default_database_path(void) {
     }
 #endif
     if (slash && (size_t)(slash-executable)+sizeof("/data/dictionary.mlm")<sizeof(executable)) {
-        strcpy(slash,"/data/dictionary.mlm");
-        f=fopen(executable,"rb");
+        memcpy(slash,"/data/dictionary.mlm",sizeof("/data/dictionary.mlm"));
+        f=open_read_binary(executable);
         if (f) { fclose(f); return copy(executable); }
     }
     return copy("data/dictionary.mlm");
