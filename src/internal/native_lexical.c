@@ -5,6 +5,7 @@
 #include "unicode_lower.h"
 #include "native_platform.h"
 #include "native_hybrid.h"
+#include "sense_filter.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +40,8 @@ struct MalmoiNative {
     struct {uint32_t word,sense_row;float *scores;int valid;} similar_cache[4];
     struct {uint32_t row,guess;float score;int valid;} sense_pair_cache[256];
     size_t similar_next;
+    unsigned char *row_reference; /* 1이면 참조형 뜻 (sense_filter.h) */
+    uint32_t *word_meaning;       /* 단어마다 참조형이 아닌 유효한 뜻의 수 */
 };
 typedef struct { uint32_t row; float score; } Hit;
 typedef struct { uint32_t row; double score; } Fused;

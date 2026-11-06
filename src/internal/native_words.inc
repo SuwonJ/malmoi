@@ -33,6 +33,26 @@ static void native_catalog_free(MalmoiNative *m) {
   free(m->bm_self);
   for (i = 0; i < 4; i++)
     free(m->similar_cache[i].scores);
+  free(m->row_reference);
+  free(m->word_meaning);
+}
+/* 뜻마다 참조형인지 표시하고, 단어마다 참조형이 아닌 유효한 뜻의 수를 세요.
+ * 뜻 하나의 저장 순서: 고정 24바이트, 키, 표제어, 뜻풀이, 어종. */
+static int native_sense_flags_build(MalmoiNative *m) {
+  uint64_t i;
+  m->row_reference = calloc((size_t)m->ndocs ? (size_t)m->ndocs : 1, 1);
+  m->word_meaning = calloc(m->word_count ? m->word_count : 1, sizeof(*m->word_meaning));
+  if (!m->row_reference || !m->word_meaning)
+    return MALMOI_MEMORY;
+  for (i = 0; i < m->ndocs; i++) {
+    const unsigned char *p = m->blob + get64(m->offsets + 8 * i);
+    uint32_t key = get32(p + 8), word = get32(p + 12), definition = get32(p + 16);
+    m->row_reference[i] = (unsigned char)malmoi_sense_is_reference(
+        p + 24 + key, word, p + 24 + key + word, definition);
+    if (!m->row_reference[i] && (m->doc_inv[i] > 0 || m->bm_self[i] > 0))
+      m->word_meaning[m->row_words[i]]++;
+  }
+  return MALMOI_OK;
 }
 static int native_catalog_build(MalmoiNative *m) {
   CatalogEntry *e = NULL;
@@ -139,6 +159,9 @@ static int native_catalog_build(MalmoiNative *m) {
     uint32_t row = get32(m->bm.documents + 4 * z);
     m->bm_doc_posts[cursor[row]++] = (uint32_t)z;
   }
+  rc = native_sense_flags_build(m);
+  if (rc)
+    goto done;
   rc = MALMOI_OK;
 done:
   free(e);
@@ -253,6 +276,21 @@ static double doc_cosine(MalmoiNative *m, uint32_t a, uint32_t b) {
 static int doc_valid(const MalmoiNative *m, uint32_t row) {
   return m->doc_inv[row] > 0 || m->bm_self[row] > 0;
 }
+/* 비교에 쓸 뜻인가? 유효해야 하고, 단어에 의미 뜻이 있으면 참조형은 빼요.
+ * 의미 뜻이 하나도 없는 단어(방언만 있는 단어 등)는 모든 뜻을 써요. */
+static int row_usable(const MalmoiNative *m, uint32_t row) {
+  if (!doc_valid(m, row))
+    return 0;
+  return !m->word_meaning[m->row_words[row]] || !m->row_reference[row];
+}
+/* 두 뜻의 뜻풀이가 글자 하나까지 똑같은가? */
+static int same_definition(const MalmoiNative *m, uint32_t a, uint32_t b) {
+  const unsigned char *p = m->blob + get64(m->offsets + 8 * a);
+  const unsigned char *q = m->blob + get64(m->offsets + 8 * b);
+  uint32_t pn = get32(p + 16), qn = get32(q + 16);
+  return pn == qn && !memcmp(p + 24 + get32(p + 8) + get32(p + 12),
+                             q + 24 + get32(q + 8) + get32(q + 12), pn);
+}
 static double combine_components(const MalmoiNative *m, uint32_t a, uint32_t b,
                                  double cosine, double forward,
                                  double reverse) {
@@ -285,7 +323,7 @@ int malmoi_native_similarity(MalmoiNative *m, const char *a, const char *b,
                              float *out) {
   uint32_t x, y;
   size_t i, j, slot;
-  double best = -1;
+  double best = -1, meaning = -1;
   int rc;
   if (!out)
     return MALMOI_ARGUMENT;
@@ -321,8 +359,15 @@ int malmoi_native_similarity(MalmoiNative *m, const char *a, const char *b,
         double v = doc_hybrid(m, r, s);
         if (v > best)
           best = v;
+        /* 뜻 기준 점수: 참조형 뜻과 똑같은 뜻풀이 짝을 빼고 구해요. */
+        if (x != y && row_usable(m, r) && row_usable(m, s) &&
+            !same_definition(m, r, s) && v > meaning)
+          meaning = v;
       }
     }
+  /* 뺄 짝을 빼고 남는 짝이 있으면 그 점수를 쓰고, 없으면 기존 점수를 써요. */
+  if (meaning >= 0)
+    best = meaning;
   if (best < 0)
     rc = MALMOI_ZERO_VECTOR;
   else {
@@ -398,6 +443,9 @@ static int native_similar_selected(MalmoiNative *m, const char *word,
       if ((selected_row != UINT32_MAX && row != selected_row) ||
           !doc_valid(m, row))
         continue;
+      /* 뜻을 고르지 않았으면 원래 단어의 참조형 뜻은 기준으로 쓰지 않아요. */
+      if (selected_row == UINT32_MAX && !row_usable(m, row))
+        continue;
       memset(scratch, 0, (size_t)m->ndocs * sizeof(*scratch));
       memset(bm_forward, 0, (size_t)m->ndocs * sizeof(*bm_forward));
       memset(bm_reverse, 0, (size_t)m->ndocs * sizeof(*bm_reverse));
@@ -431,6 +479,11 @@ static int native_similar_selected(MalmoiNative *m, const char *word,
         uint32_t id = m->row_words[j];
         if (score > 1)
           score = 1;
+        /* 후보 단어의 참조형 뜻, 원래 뜻과 뜻풀이가 똑같은 뜻은 빼요.
+         * 똑같은 뜻풀이는 점수가 거의 1이라 높은 점수일 때만 비교해요. */
+        if (!row_usable(m, (uint32_t)j) ||
+            (score > 0.99 && same_definition(m, row, (uint32_t)j)))
+          continue;
         if (score > best[id])
           best[id] = (float)score;
       }
@@ -448,7 +501,7 @@ static int native_similar_selected(MalmoiNative *m, const char *word,
     goto end;
   }
   for (i = 0; i < m->word_count; i++)
-    if (i != source && m->words[i].has_vector) {
+    if (i != source && m->words[i].has_vector && m->word_meaning[i]) {
       hits[n].row = (uint32_t)i;
       hits[n++].score = best[i];
     }
@@ -588,7 +641,7 @@ int malmoi_native_similarity_sense(MalmoiNative *m, const char *word,
                                    int64_t sid, const char *guess, float *out) {
   uint32_t row, id;
   size_t i, slot;
-  double best = -1;
+  double best = -1, meaning = -1;
   int rc;
   if (!out)
     return MALMOI_ARGUMENT;
@@ -619,8 +672,13 @@ int malmoi_native_similarity_sense(MalmoiNative *m, const char *word,
       double v = doc_hybrid(m, row, target);
       if (v > best)
         best = v;
+        if (m->row_words[row] != id && row_usable(m, target) &&
+          !same_definition(m, row, target) && v > meaning)
+        meaning = v;
     }
   }
+  if (meaning >= 0)
+    best = meaning;
   if (best < 0)
     rc = MALMOI_ZERO_VECTOR;
   else {
