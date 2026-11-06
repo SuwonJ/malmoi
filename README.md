@@ -34,7 +34,7 @@ Windows에서는 `build/cmake/Debug/malmoi.exe` 또는 사용한 CMake 생성기
 
 `native-index`는 Python 검색기의 문자 TF-IDF와 Kiwi BM25를 C에서 실행하는 선택 빌드입니다. 기존 C 검색기는 그대로 기본값입니다. 실행에는 Python이 필요하지 않지만, Kiwi 0.24.0의 네이티브 라이브러리와 동일 버전 base 모델, ICU 개발 라이브러리, 별도로 전달받은 전체 사전 인덱스가 필요합니다. 이 인덱스는 Git에 포함되지 않습니다. Linux x86-64에서 검증했으며 Windows는 현재 지원하지 않습니다.
 
-인덱스 제작자는 `thesaurus`의 기존 전체 사전 캐시와 Python 환경에서 `python tools/export_native_index.py --help`로 생성 옵션을 확인합니다. 생성한 인덱스 디렉터리 전체와 Kiwi 모델을 팀원에게 전달해야 합니다. 인덱스와 모델의 해시가 다르면 시작에 실패합니다.
+인덱스 제작자는 오프라인 Python 환경에서 `python tools/export_native_index.py --help`로 생성 옵션을 확인합니다. 사전 JSON Lines, 신뢰하는 TF-IDF 캐시, BM25 캐시 경로는 각각 `--dictionary`, `--char-cache`, `--bm25-cache`로 명시합니다. 생성한 인덱스 디렉터리 전체와 Kiwi 모델을 팀원에게 전달해야 합니다. 인덱스와 모델의 해시가 다르면 시작에 실패합니다.
 
 Linux x86-64에서는 [Kiwi 0.24.0 공식 릴리스](https://github.com/bab2min/Kiwi/releases/tag/v0.24.0)의 `kiwi_lnx_x86_64_v0.24.0.tgz`와 `kiwi_model_v0.24.0_base.tgz`를 각각 풀어 사용합니다. 검증한 압축 파일의 SHA-256은 각각 `577768800258154da5fe6665081c73dafd6a0c39c8e091325d2b2bef8b5fb5d8`, `33188ba932bba4717bad5244bbec0ef8b1c9cbb47e26e68394a7976d8d779083`입니다. 모델 경로는 압축 해제 후 `models/cong/base`입니다.
 

@@ -9,7 +9,7 @@ import json
 import os
 import shutil
 import struct
-import sys
+import unicodedata
 import tempfile
 import time
 from pathlib import Path
@@ -20,11 +20,17 @@ import scipy.sparse as sp
 import kiwipiepy
 import kiwipiepy_model
 
-ROOT = Path(os.environ.get('THESAURUS_ROOT', Path(__file__).resolve().parents[2] / 'thesaurus')).resolve()
-sys.path.insert(0, str(ROOT))
-from src.data import CORPUS_SCOPE, load_dictionary
-from src.experiment_suite import canonical, fingerprint
-from src.lexical_bm25 import _parameters
+CORPUS_SCOPE = 'all-valid-v1'
+
+
+def canonical(word):
+    return unicodedata.normalize('NFC', word).replace('-', '').replace('^', '')
+
+
+def load_dictionary(path):
+    with path.open(encoding='utf-8') as f:
+        return [row for line in f if (row := json.loads(line)).get('word') and row.get('definition')]
+
 
 MAGIC = b'MLMIDX01'
 VERSION = 1
@@ -92,19 +98,20 @@ def save_senses(path, rows, corpus_hash):
         f.seek(HEADER.size); offsets.tofile(f)
 
 
-def export(output):
+def export(output, data, char_file, bm_dir):
     start = time.perf_counter()
-    data = ROOT / 'data/processed/dictionary.jsonl'; data_hash = fingerprint(data)
+    data_hash = digest(data)
     rows = load_dictionary(data)
-    char_key = data_hash[:16] + '-' + fingerprint(ROOT / 'src/vectorizers.py')[:12] + '-' + CORPUS_SCOPE
-    char_file = ROOT / 'artifacts/playground' / ('char-' + char_key + '.joblib')
-    if not char_file.is_file(): raise ValueError('전체 어휘 TF-IDF 캐시가 없습니다')
-    expected = _parameters(data_hash, len(rows), kiwipiepy.__version__)
-    bm_dir = None
-    for path in sorted((ROOT / 'artifacts/kiwi-bm25').glob('*/manifest.json')):
-        meta = json.loads(path.read_text())
-        if all(meta.get(k) == v for k, v in expected.items()): bm_dir = path.parent; break
-    if bm_dir is None: raise ValueError('전체 어휘 BM25 캐시가 없습니다')
+    meta = json.loads((bm_dir / 'manifest.json').read_text())
+    expected = {'data_sha256': data_hash, 'corpus_scope': CORPUS_SCOPE,
+                'documents': len(rows), 'kiwi_version': kiwipiepy.__version__,
+                'k1': 1.2, 'b': .75,
+                'analyzer': 'pretokenized unigrams including particles and endings',
+                'idf': 'ln(1+(N-df+0.5)/(df+0.5))',
+                'query_term_frequency': 'binary',
+                'tokenizer': 'surface_regex_alnum_v1; kiwi_all_nonpunct_v1'}
+    if any(meta.get(k) != v for k, v in expected.items()):
+        raise ValueError('BM25 캐시와 코퍼스·토큰화·매개변수가 다릅니다')
     if output.exists(): raise FileExistsError(f'출력 경로가 이미 존재합니다: {output}')
     output.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix='.native-index-', dir=output.parent))
@@ -155,7 +162,10 @@ def export(output):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--dictionary', type=Path, required=True, help='유효 뜻풀이 JSON Lines')
+    p.add_argument('--char-cache', type=Path, required=True, help='신뢰하는 TF-IDF joblib 캐시')
+    p.add_argument('--bm25-cache', type=Path, required=True, help='manifest.json이 있는 BM25 캐시 디렉터리')
     args=p.parse_args()
-    export(args.output.resolve())
+    export(args.output.resolve(), args.dictionary.resolve(), args.char_cache.resolve(), args.bm25_cache.resolve())
 
 if __name__ == '__main__': main()
