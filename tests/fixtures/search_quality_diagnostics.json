@@ -1,0 +1,56 @@
+{
+  "scope": "exploratory; not independent quality validation",
+  "notes": [
+    "울기는 사전에 답답하고 우울한 기분으로 정의되어 있다. 사용자 기대와의 차이를 검토해야 하며 자동으로 오답 판정하지 않는다.",
+    "전체감정은 감정이라는 어휘와 관련되지만 넓은 질의의 대표 답변인지 미판정이다.",
+    "모델 원시 점수는 척도가 달라 서로 직접 비교하지 않는다."
+  ],
+  "cases": [
+    {
+      "query": "우울한 기분",
+      "candidate": {
+        "row": 1054621,
+        "sense_id": 19752,
+        "word": "울기",
+        "definition": "답답하고 우울한 기분.",
+        "score": 2.0,
+        "word_type": "한자어"
+      },
+      "fusion_rank": 1,
+      "tfidf": {
+        "rank": 1,
+        "raw_score": 0.595823109
+      },
+      "bm25": {
+        "rank": 1,
+        "raw_score": 25.6134968
+      },
+      "review_status": "user_flagged_requires_human_review",
+      "human_relevance": null,
+      "observation": "두 검색기의 동일 뜻풀이 지지가 결합 점수에 더해짐. 적합성 확정이나 개선 증거가 아님."
+    },
+    {
+      "query": "감정",
+      "candidate": {
+        "row": 1175357,
+        "sense_id": 580907,
+        "word": "전체감정",
+        "definition": "부분 감정이 한데 묶였을 때의 감정.",
+        "score": 1.4816364413634358,
+        "word_type": "한자어"
+      },
+      "fusion_rank": 1,
+      "tfidf": {
+        "rank": 4,
+        "raw_score": 0.259002388
+      },
+      "bm25": {
+        "rank": 4,
+        "raw_score": 10.2117891
+      },
+      "review_status": "user_flagged_requires_human_review",
+      "human_relevance": null,
+      "observation": "두 검색기의 동일 뜻풀이 지지가 결합 점수에 더해짐. 적합성 확정이나 개선 증거가 아님."
+    }
+  ]
+}

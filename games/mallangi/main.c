@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -36,7 +37,11 @@ int main(void) {
     }
 
     // 게임 시작 및 카드 지급
-    if(!game_start(&game, engine, answer)) {
+    const char *sense_text=getenv("MALLANGI_SENSE_ID");
+    int started;
+    if(sense_text&&*sense_text){char *end;long long sid;errno=0;sid=strtoll(sense_text,&end,10);started=(!errno&&!*end)?game_start_sense(&game,engine,answer,(int64_t)sid):0;}
+    else started=game_start(&game,engine,answer);
+    if(!started) {
         printf("게임 초기화에 실패했습니다.\n");
         malmoi_close(engine);
         return 1;

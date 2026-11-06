@@ -26,7 +26,10 @@ for value in os.environ.get('MALLANGI_ORIGINS', '').split(','):
             or parsed.username or parsed.password or '*' in origin):
         raise ValueError('MALLANGI_ORIGINS must contain exact http://host:8000 origins')
     ALLOWED_ORIGINS.add(origin)
-engine = ctypes.CDLL(str(ROOT / 'libmallangi_web.so'))
+LIBRARY = Path(os.environ.get('MALLANGI_LIBRARY', str(ROOT.parents[1] / 'build/team/libmallangi_web.so'))).resolve()
+os.environ.setdefault('MALMOI_NATIVE_INDEX', str(LIBRARY.parent / 'runtime/index'))
+os.environ.setdefault('MALMOI_KIWI_MODEL', str(LIBRARY.parent / 'runtime/model/models/cong/base'))
+engine = ctypes.CDLL(str(LIBRARY))
 engine.mallangi_create.argtypes = []
 engine.mallangi_create.restype = ctypes.c_void_p
 engine.mallangi_destroy.argtypes = [ctypes.c_void_p]
@@ -40,6 +43,12 @@ engine.mallangi_saved_answer.restype = ctypes.c_char_p
 engine.mallangi_restore.argtypes = [ctypes.c_void_p, ctypes.c_char_p,
     ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 engine.mallangi_restore.restype = ctypes.c_int
+engine.mallangi_saved_sense_id.argtypes=[ctypes.c_void_p]
+engine.mallangi_saved_sense_id.restype=ctypes.c_int64
+engine.mallangi_saved_has_sense.argtypes=[ctypes.c_void_p]
+engine.mallangi_saved_has_sense.restype=ctypes.c_int
+engine.mallangi_restore_sense.argtypes=[ctypes.c_void_p,ctypes.c_char_p,ctypes.c_int,ctypes.c_int64,ctypes.POINTER(ctypes.c_char_p),ctypes.POINTER(ctypes.c_float),ctypes.c_int]
+engine.mallangi_restore_sense.restype=ctypes.c_int
 STATE_FILE = Path(os.environ.get('MALLANGI_STATE', str(ROOT / 'mallangi-state.sqlite3')))
 sessions = {}
 rooms = {}

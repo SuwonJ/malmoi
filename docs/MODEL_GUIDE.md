@@ -2,13 +2,13 @@
 
 ## 현재 기본: Kiwi C API 기반 C 검색
 
-기본 CMake 빌드는 `MALMOI_WITH_E5=OFF`, 실행 설정의 `MALMOI_MODEL`은 빈 값이다. 팀원용 전체 사전은 `data/full.mlm`과 실행 파일 옆 사전에서 자동으로 찾는다. `MALMOI_DATA`는 실험용 선택 설정이다. 기본 역방향 검색은 자동 다운로드한 전체 어종 TF-IDF·BM25 인덱스와 Kiwi C API를 사용한다. Python·ICU 설치나 경로 설정은 필요하지 않다. 기존 MLM은 게임·유사어에 사용한다.
+기본 CMake 빌드는 `MALMOI_WITH_E5=OFF`이며 전체 어종 네이티브 인덱스를 역검색·유사어·게임에 사용한다. 기본 실행에는 MLM, Python 패키지, ICU가 필요하지 않다. `MALMOI_DATA`와 MLM은 명시적으로 선택하는 레거시 빌드에서 사용한다.
 
 | 기능 | 기본 모드 | 선택 E5 모드 |
 |---|---|---|
 | 설명 검색 | 문자 2–4그램 TF-IDF + Kiwi BM25 순위 결합 | 새 설명의 E5 벡터와 사전 벡터 코사인 |
-| 유사어·게임 점수 | MLM의 저장 벡터 | 동일 |
-| 배포 | 실행 파일 + 자동 준비된 runtime/ + MLM | 실행 파일 + MLM + Python 환경 + 모델 + 인코더 스크립트 |
+| 유사어·게임 점수 | 뜻풀이 TF-IDF + 대칭 정규화 Kiwi BM25 | MLM 저장 벡터 코사인 |
+| 배포 | 실행 파일 + 자동 준비된 runtime/ | 실행 파일 + MLM + Python 환경 + 모델 + 인코더 스크립트 |
 
 ```bash
 cmake --preset native

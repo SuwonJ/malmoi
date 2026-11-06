@@ -1,15 +1,14 @@
 #include "similarity.h"
 
-int game_similarity(
-    const Malmoi *engine,
-    const char *answer,
-    const char *guess,
-    float *score
-){
-    if(engine == NULL || answer == NULL ||
-       guess == NULL || score == NULL){
-        return MALMOI_ARGUMENT;
-    }
+int game_similarity(const Malmoi *engine, const char *answer, const char *guess,
+                    float *score) {
+  if (engine == NULL || answer == NULL || guess == NULL || score == NULL) {
+    return MALMOI_ARGUMENT;
+  }
 
-    return malmoi_similarity(engine, answer, guess, score);
+  return malmoi_similarity(engine, answer, guess, score);
+}
+int game_similarity_sense(const Malmoi *engine, const char *answer,
+                          int64_t sense_id, const char *guess, float *score) {
+  return malmoi_similarity_sense(engine, answer, sense_id, guess, score);
 }

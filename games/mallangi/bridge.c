@@ -1,4 +1,6 @@
+#define _POSIX_C_SOURCE 200809L
 #include <math.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,12 +25,11 @@ int mallangi_validate_daily(const char *word) {
     if (!word || !*word || strlen(word) >= MALLANGI_WORD_BYTES) return MALMOI_ARGUMENT;
     int status = open_engine();
     if (status != MALMOI_OK) return status;
-    float score;
-    status = malmoi_similarity(engine, word, word, &score);
-    if (status != MALMOI_OK) return status;
-    MalmoiResult hints[32];  // Keep in sync with game.c's hint pool size.
-    size_t count = 0;
-    status = malmoi_similar(engine, word, hints, 32, &count);
+    GameState probe={0};
+    if(!game_start(&probe,engine,word))return MALMOI_RANGE;
+    MalmoiResult hints[32];
+    size_t count=0;
+    status=probe.answer_has_sense?malmoi_similar_sense(engine,word,probe.answer_sense_id,hints,32,&count):malmoi_similar(engine,word,hints,32,&count);
     if (status != MALMOI_OK) return status;
     if (count < MALLANGI_CARD_COUNT) return MALMOI_RANGE;
     for (size_t i = 0; i < count; ++i)
@@ -43,17 +44,19 @@ const char *mallangi_saved_answer(void *handle) {
     return handle ? ((GameState *)handle)->answer : NULL;
 }
 
-int mallangi_restore(void *handle, const char *answer,
+int mallangi_restore_sense(void *handle, const char *answer, int has_sense, int64_t sense_id,
                      const char **words, const float *scores, int count) {
-    if (!handle || !answer || !words || !scores || count != MALLANGI_CARD_COUNT)
+    if ((has_sense!=0 && has_sense!=1) || !handle || !answer || !words || !scores || count != MALLANGI_CARD_COUNT)
         return 0;
     if (open_engine() != MALMOI_OK) return 0;
     GameState restored = {0};
     float self_score;
     if (!*answer || strlen(answer) >= MALLANGI_WORD_BYTES
-            || malmoi_similarity(engine, answer, answer, &self_score) != MALMOI_OK)
+            || (has_sense ? malmoi_similarity_sense(engine,answer,sense_id,answer,&self_score) : malmoi_similarity(engine,answer,answer,&self_score)) != MALMOI_OK
+            || (!strcmp(malmoi_search_mode(engine),"native-index") && !has_sense))
         return 0;
     strcpy(restored.answer, answer);
+    restored.answer_has_sense=has_sense;restored.answer_sense_id=sense_id;
     restored.attempts = MALLANGI_MAX_ATTEMPTS;
     restored.engine = engine;
     restored.cardCount = count;
@@ -62,7 +65,7 @@ int mallangi_restore(void *handle, const char *answer,
         if (!words[i] || !*words[i] || strlen(words[i]) >= MALLANGI_WORD_BYTES
                 || !isfinite(scores[i]) || scores[i] < -1 || scores[i] > 1)
             return 0;
-        if (malmoi_similarity(engine, answer, words[i], &score) != MALMOI_OK
+        if ((has_sense?malmoi_similarity_sense(engine,answer,sense_id,words[i],&score):malmoi_similarity(engine,answer,words[i],&score)) != MALMOI_OK
                 || fabsf(score - scores[i]) > 0.0001f)
             return 0;
         strcpy(restored.cards[i].word, words[i]);
@@ -70,6 +73,14 @@ int mallangi_restore(void *handle, const char *answer,
     }
     *(GameState *)handle = restored;
     return 1;
+}
+
+int64_t mallangi_saved_sense_id(void *handle){return handle?((GameState*)handle)->answer_sense_id:0;}
+int mallangi_saved_has_sense(void *handle){return handle?((GameState*)handle)->answer_has_sense:0;}
+/* Word-only restoration cannot infer an old game's intended sense. */
+int mallangi_restore(void *handle,const char *answer,const char **words,const float *scores,int count){
+    if(open_engine()!=MALMOI_OK||!strcmp(malmoi_search_mode(engine),"native-index"))return 0;
+    return mallangi_restore_sense(handle,answer,0,0,words,scores,count);
 }
 
 static void json_string(FILE *out, const char *value) {
@@ -97,7 +108,10 @@ const char *mallangi_request(void *handle, const char *guess) {
     if (!guess) {
         const char *answer = getenv("MALLANGI_ANSWER");
         if (!answer || !*answer) answer = daily_answer_kst(time(NULL));
-        if (!game_start(game, engine, answer)) {
+        const char *sense_text=getenv("MALLANGI_SENSE_ID");int started;
+        if(sense_text&&*sense_text){char *end;long long sid;errno=0;sid=strtoll(sense_text,&end,10);started=(!errno&&!*end)?game_start_sense(game,engine,answer,(int64_t)sid):0;}
+        else started=game_start(game,engine,answer);
+        if (!started) {
             return "{\"error\":\"game_start failed: check answer and dataset\"}";
         }
     } else if (*guess) {
@@ -122,6 +136,7 @@ const char *mallangi_request(void *handle, const char *guess) {
     if (game->finished) {
         fputs(",\"answer\":", out);
         json_string(out, game->answer);
+        if(game->answer_has_sense)fprintf(out,",\"answerSenseId\":%lld",(long long)game->answer_sense_id);
     }
     fputs("}", out);
     fclose(out);
@@ -133,7 +148,7 @@ const char *mallangi_join(void *handle, void *room_handle) {
     GameState *room = room_handle;
     if (!handle || !room || !engine || !room->answer[0])
         return "{\"error\":\"invalid room\"}";
-    if (!game_start(handle, engine, room->answer))
+    if (!(room->answer_has_sense?game_start_sense(handle,engine,room->answer,room->answer_sense_id):game_start(handle,engine,room->answer)))
         return "{\"error\":\"room game initialization failed\"}";
     return mallangi_request(handle, "");
 }

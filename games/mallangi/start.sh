@@ -30,12 +30,17 @@ done
 if ! command -v python3 >/dev/null; then
     echo 'python3가 필요합니다.' >&2; exit 1
 fi
-for required in server.py storage.py libmallangi_web.so; do
+for required in server.py storage.py; do
     if [[ ! -f "$script_dir/$required" ]]; then
         echo "필요한 파일이 없습니다: $script_dir/$required" >&2; exit 1
     fi
 done
 
+export MALLANGI_LIBRARY="${MALLANGI_LIBRARY:-$project_root/build/team/libmallangi_web.so}"
+if [[ ! -f "$MALLANGI_LIBRARY" ]]; then
+    echo '뜻풀이 고정 게임 라이브러리를 먼저 빌드하세요: cmake --build build/team --target mallangi_web' >&2
+    exit 1
+fi
 # Explicit options take precedence over old environment variables.
 unset MALLANGI_ANSWER
 if [[ "$mode" == demo ]]; then

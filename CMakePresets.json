@@ -21,6 +21,17 @@
         "MALMOI_WITH_E5": "ON",
         "MALMOI_WITH_NATIVE_INDEX": "OFF"
       }
+    },
+    {
+      "name": "team",
+      "displayName": "Default reverse search: TF-IDF + Kiwi BM25",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/team",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MALMOI_WITH_NATIVE_INDEX": "ON",
+        "MALMOI_WITH_E5": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -31,6 +42,10 @@
     {
       "name": "e5",
       "configurePreset": "e5"
+    },
+    {
+      "name": "team",
+      "configurePreset": "team"
     }
   ]
 }

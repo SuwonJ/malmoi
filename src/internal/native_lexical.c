@@ -4,6 +4,7 @@
 #include <kiwi/capi.h>
 #include "unicode_lower.h"
 #include "native_platform.h"
+#include "native_hybrid.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@ typedef struct {
     const unsigned char *offsets, *blob, *pointers, *documents, *values, *idf;
 } SparseIndex;
 typedef struct Owned { char *word, *definition, *type; struct Owned *next; } Owned;
+typedef struct { char *key,*word; uint32_t start,count; int has_vector; } NativeWord;
 struct MalmoiNative {
     SparseIndex chr, bm;
     Mapping senses, lengths;
@@ -30,6 +32,13 @@ struct MalmoiNative {
     int lock_initialized;
     Owned *owned;
     Owned **by_row;
+    NativeWord *words; size_t word_count;
+    uint32_t *word_rows,*row_words,*doc_posts,*bm_doc_posts;
+    uint64_t *doc_ptr,*bm_doc_ptr; double *doc_inv,*bm_self;
+    struct {uint32_t a,b;float score;int valid;} pair_cache[256];
+    struct {uint32_t word,sense_row;float *scores;int valid;} similar_cache[4];
+    struct {uint32_t row,guess;float score;int valid;} sense_pair_cache[256];
+    size_t similar_next;
 };
 typedef struct { uint32_t row; float score; } Hit;
 typedef struct { uint32_t row; double score; } Fused;
@@ -131,8 +140,11 @@ static int index_open(SparseIndex *x,const char *dir,const char *terms,const cha
     prev=0;for(i=0;i<x->nterms;i++){uint64_t a=get64(x->pointers+8*i),b=get64(x->pointers+8*(i+1));if(a!=prev||b<a||b>x->nnz)return MALMOI_FORMAT;prev=b;}
     return MALMOI_OK;
 }
+static int native_catalog_build(MalmoiNative*m);
+static void native_catalog_free(MalmoiNative*m);
+static char *copy_n(const unsigned char *p,size_t n);
 static void free_owned(Owned *p){while(p){Owned *n=p->next;free(p->word);free(p->definition);free(p->type);free(p);p=n;}}
-void malmoi_native_close(MalmoiNative *m){if(!m)return;if(m->kiwi)kiwi_close(m->kiwi);index_close(&m->chr);index_close(&m->bm);unmap(&m->senses);unmap(&m->lengths);free_owned(m->owned);free(m->by_row);if(m->lock_initialized)pthread_mutex_destroy(&m->lock);free(m);}
+void malmoi_native_close(MalmoiNative *m){if(!m)return;if(m->kiwi)kiwi_close(m->kiwi);index_close(&m->chr);index_close(&m->bm);unmap(&m->senses);unmap(&m->lengths);free_owned(m->owned);free(m->by_row);native_catalog_free(m);if(m->lock_initialized)pthread_mutex_destroy(&m->lock);free(m);}
 int malmoi_native_open(MalmoiNative **out,const char *dir,const char *model){
     MalmoiNative *m;unsigned char hash[32];uint64_t i,prev,needed;int rc;
     if(!out||!dir||!model)return MALMOI_ARGUMENT;
@@ -154,6 +166,7 @@ int malmoi_native_open(MalmoiNative **out,const char *dir,const char *model){
     m->offsets=m->senses.p+HEADER;m->blob=m->senses.p+needed;
     if(get64(m->offsets)!=0||get64(m->offsets+8*m->ndocs)!=m->senses.n-needed){rc=MALMOI_FORMAT;goto fail;}
     prev=0;for(i=0;i<m->ndocs;i++){uint64_t a=get64(m->offsets+8*i),b=get64(m->offsets+8*(i+1));if(a!=prev||b<a||b-a<24||b>m->senses.n-needed){rc=MALMOI_FORMAT;goto fail;}prev=b;}
+    rc=native_catalog_build(m);if(rc)goto fail;
     if(strcmp(kiwi_version(),"0.24.0")){rc=MALMOI_CONFIG;goto fail;}
     m->kiwi=kiwi_init(model,4,KIWI_BUILD_DEFAULT,KIWI_DIALECT_STANDARD);if(!m->kiwi){fprintf(stderr,"malmoi: Kiwi: %s\n",kiwi_error());rc=MALMOI_CONFIG;goto fail;}
     if(pthread_mutex_init(&m->lock,NULL)){rc=MALMOI_IO;goto fail;}m->lock_initialized=1;*out=m;return MALMOI_OK;
@@ -201,3 +214,5 @@ int malmoi_native_search(MalmoiNative*m,const char*q,MalmoiNativeHit*out,size_t 
  *count=printed;
  rc=MALMOI_OK;
 end:free(cs);free(bs);pthread_mutex_unlock(&m->lock);return rc;}
+
+#include "native_words.inc"

@@ -1,17 +1,20 @@
 """Transactional SQLite snapshots; C pointers are never written to disk."""
 import ctypes
+from contextlib import closing
 import json
 import os
 from pathlib import Path
 import sqlite3
 import time
 
-VERSION = 1
+VERSION = 3
 
 
 def save(path, engine, sessions, rooms):
     def game(handle, cards):
         return {'answer': engine.mallangi_saved_answer(handle).decode('utf-8'),
+                'has_sense':bool(engine.mallangi_saved_has_sense(handle)),
+                'sense_id':int(engine.mallangi_saved_sense_id(handle)),
                 'cards': cards}
 
     saved_sessions = {}
@@ -36,7 +39,7 @@ def save(path, engine, sessions, rooms):
                           'rooms': saved_rooms}, ensure_ascii=False, allow_nan=False)
     # ponytail: bounded 64-session snapshot; use per-session rows if throughput grows.
     path = Path(path)
-    with sqlite3.connect(path, timeout=5) as database:
+    with closing(sqlite3.connect(path, timeout=5)) as database, database:
         database.execute('CREATE TABLE IF NOT EXISTS snapshot (id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT NOT NULL)')
         database.execute('INSERT OR REPLACE INTO snapshot VALUES (1, ?)', (payload,))
     os.chmod(path, 0o600)
@@ -46,13 +49,13 @@ def load(path, engine, ttl, max_sessions, max_players):
     path = Path(path)
     if not path.exists():
         return {}, {}
-    with sqlite3.connect(path, timeout=5) as database:
+    with closing(sqlite3.connect(path, timeout=5)) as database, database:
         row = database.execute('SELECT payload FROM snapshot WHERE id=1').fetchone()
     if row is None:
         raise ValueError('Saved game snapshot is missing; preserve the file and investigate.')
     data = json.loads(row[0])
     if data.get('version') != VERSION:
-        raise ValueError('Unsupported saved game version')
+        raise ValueError('Unsupported saved game version or score model; preserve the old snapshot and start a separate new game')
     if len(data['sessions']) > max_sessions or len(data['rooms']) > max_sessions:
         raise ValueError('Saved game capacity exceeded')
     allocated = []
@@ -70,7 +73,9 @@ def load(path, engine, ttl, max_sessions, max_players):
         if not handle:
             raise MemoryError('Game allocation failed')
         allocated.append(handle)
-        if not engine.mallangi_restore(handle, answer, words, scores, len(cards)):
+        if type(game.get('has_sense')) is not bool or type(game.get('sense_id')) is not int or not -(2**63)<=game['sense_id']<2**63:
+            raise ValueError('Saved answer sense is missing or invalid')
+        if not engine.mallangi_restore_sense(handle, answer, int(game['has_sense']), game['sense_id'], words, scores, len(cards)):
             raise ValueError('Cannot restore cards/answer: check that the dataset has not changed')
         return handle
 
@@ -93,6 +98,8 @@ def load(path, engine, ttl, max_sessions, max_players):
             for key in ('remaining', 'finished', 'won', 'cards'):
                 if current[key] != saved['state'][key]:
                     raise ValueError(f'Saved state mismatch: {key}')
+            if current.get('answerSenseId') != saved['state'].get('answerSenseId'):
+                raise ValueError('Saved answer sense mismatch')
             if current.get('answer') != saved['state'].get('answer'):
                 raise ValueError('Saved answer mismatch')
             # Preserve the last response's score/status as well as the verified
@@ -106,7 +113,7 @@ def load(path, engine, ttl, max_sessions, max_players):
             if len(members) > max_players:
                 raise ValueError('Saved room capacity exceeded')
             handle = restore(saved['game'])
-            if any(engine.mallangi_saved_answer(sessions[token]['handle']).decode('utf-8') != saved['game']['answer'] for token in members):
+            if any(engine.mallangi_saved_answer(sessions[token]['handle']).decode('utf-8') != saved['game']['answer'] or bool(engine.mallangi_saved_has_sense(sessions[token]['handle'])) != saved['game']['has_sense'] or int(engine.mallangi_saved_sense_id(sessions[token]['handle'])) != saved['game']['sense_id'] for token in members):
                 raise ValueError('Saved room answer mismatch')
             rooms[code] = {'handle': handle, 'members': members, 'nextNumber': saved['nextNumber']}
         if any(session.get('room') and session['room'] not in rooms for session in sessions.values()):

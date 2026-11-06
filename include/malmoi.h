@@ -14,7 +14,7 @@ extern "C" {
 
 typedef struct Malmoi Malmoi;
 typedef struct {
-    uint32_t word_id;  /* dataset ID; UINT32_MAX when result has no unique C match */
+    uint32_t word_id;  /* engine-local word ID, identical to malmoi_word_at index */
     const char *word;  /* original spelling, read-only */
     const char *key;   /* normalized word */
     float score;       /* native [0,1], E5 [-1,1], rank fusion [0,2] */
@@ -27,9 +27,10 @@ enum MalmoiStatus {
 };
 
 /* Default mode is native C only. Finds data/full.mlm, executable-adjacent
- * data/dictionary.mlm, then working-directory data/dictionary.mlm. MALMOI_DATA may
+ * data/dictionary.mlm, then working-directory data/dictionary.mlm in legacy mode. MALMOI_DATA may
  * select another UTF-8 path. CMake default uses executable-adjacent runtime/
- * for the native Kiwi index. No Python, ONNX or runtime network is needed.
+ * for the native Kiwi index; all native APIs use it without opening MLM.
+ * No Python, ONNX or runtime network is needed.
  * Optional E5 build: MALMOI_MODEL selects matching offline model assets and
  * enables semantic description search using embedded Python/ONNX Runtime.
  * Explicit model configuration errors never silently fall back to lexical.
@@ -44,8 +45,9 @@ MALMOI_API const char *malmoi_data_path(const Malmoi *engine);
 MALMOI_API const char *malmoi_search_mode(const Malmoi *engine);
 
 /* Enumerate dictionary word records in dataset order (not frequency order).
- * A normalized key may occur in more than one record, so sampling records
- * uniformly does not sample distinct words uniformly.
+ * Native mode: one record per canonical key, sorted by UTF-8 bytes,
+ * id == index; all senses of that key share this ID.
+ * Legacy mode: duplicate keys may occur in separate MLM records.
  * word and key are read-only engine-owned pointers, valid until close.
  * Index must be less than malmoi_word_count; null arguments are errors. */
 typedef struct {
@@ -61,8 +63,8 @@ MALMOI_API int malmoi_word_at(const Malmoi *engine, size_t index, MalmoiWord *ou
  * Legacy lexical mode: [0,1]. E5 mode: [-1,1].
  * Caller allocates out[k]. count is actual results, cleared on failure.
  * Returned strings belong to engine, valid until malmoi_close.
- * Indexed modes preserve reference ordering; absent/ambiguous C words use
- * UINT32_MAX and cannot be used as a C dataset ID.
+ * Native reverse ordering is by sense fusion, then word deduplication;
+ * word_id refers to the whole-index catalog (not the source sense ID).
  * k=0/out=NULL is allowed. Text is limited to 8192 UTF-8 bytes. */
 MALMOI_API int malmoi_search(const Malmoi *engine,const char *text,
                             MalmoiResult *out,size_t k,size_t *count);
@@ -79,10 +81,27 @@ typedef struct {
 } MalmoiSenseResult;
 MALMOI_API int malmoi_search_senses(const Malmoi *engine,const char *text,
                                    MalmoiSenseResult *out,size_t k,size_t *count);
-/* Existing NFC word -> similar words, excluding its own normalized key. */
+/* Native sense selection. IDs are original dictionary sense IDs, scoped by word.
+ * Returned strings live until close. Legacy backends return UNSUPPORTED.
+ * A selected source sense is fixed; candidate/guess words use their best sense.
+ * Native corpus/index version determines which sense IDs are available. */
+typedef struct {
+    uint32_t row, word_id;
+    int64_t sense_id;
+    const char *word, *definition;
+} MalmoiSense;
+MALMOI_API int malmoi_sense_count(const Malmoi *engine,const char *word,size_t *count);
+MALMOI_API int malmoi_sense_at(const Malmoi *engine,const char *word,size_t index,MalmoiSense *out);
+MALMOI_API int malmoi_similar_sense(const Malmoi *engine,const char *word,int64_t sense_id,MalmoiResult *out,size_t k,size_t *count);
+MALMOI_API int malmoi_similarity_sense(const Malmoi *engine,const char *word,int64_t sense_id,const char *guess,float *score);
+/* Native: TF-IDF + symmetric normalized Kiwi BM25, [0,1], excluding the
+ * same normalized word. Score is exploratory and is not a probability. */
 MALMOI_API int malmoi_similar(const Malmoi *engine,const char *word,
                              MalmoiResult *out,size_t k,size_t *count);
-/* Two existing words -> max sense-pair cosine. Unknown words are errors. */
+/* Two existing words -> maximum combined sense-pair score. Native: equal
+ * definition TF-IDF cosine and normalized symmetric Kiwi BM25, [0,1];
+ * if one shared component is unavailable, use the other; legacy: stored vectors. Same canonical word returns 1 if
+ * any sense has a nonzero vector; all-zero words return ZERO_VECTOR. */
 MALMOI_API int malmoi_similarity(const Malmoi *engine,const char *a,const char *b,float *score);
 MALMOI_API const char *malmoi_error_string(int status);
 

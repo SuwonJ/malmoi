@@ -4,6 +4,7 @@
 #include "game.h"
 
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -69,36 +70,17 @@ static void run_search(const Malmoi *engine, int similar) {
 static void run_game(const Malmoi *engine) {
     const char *answer = getenv("MALLANGI_ANSWER");
     GameState game = {0};
-    MalmoiResult hints[HINT_POOL_SIZE];
-    size_t hint_count = 0;
-    int cards[CARD_COUNT];
-    int status;
-    int i;
-
-    /* The default answer is a demo setting, not daily-answer selection. */
-    if (!answer || !answer[0]) answer = "이슬비";
-    if (strlen(answer) >= sizeof(game.answer)) {
-        fputs("정답 단어가 너무 깁니다.\n", stderr);
-        return;
-    }
-    status = malmoi_similar(engine, answer, hints, HINT_POOL_SIZE, &hint_count);
-    if (status != MALMOI_OK || hint_count < CARD_COUNT) {
-        fprintf(stderr, "게임 준비 실패: %s (후보 %zu개)\n",
-                malmoi_error_string(status), hint_count);
-        return;
-    }
-
-    game.engine = engine;
-    game.attempts = MALLANGI_MAX_ATTEMPTS;
-    strcpy(game.answer, answer);
-    draw_cards(cards, CARD_COUNT, (int)hint_count);
-
+    const char *sense_text=getenv("MALLANGI_SENSE_ID");
+    int started;
+    if(!answer||!answer[0])answer="이슬비";
+    if(sense_text&&sense_text[0]){
+        char *end;long long sid;errno=0;sid=strtoll(sense_text,&end,10);
+        if(errno||*end){fputs("MALLANGI_SENSE_ID가 올바른 정수가 아닙니다.\n",stderr);return;}
+        started=game_start_sense(&game,engine,answer,(int64_t)sid);
+    }else started=game_start(&game,engine,answer);
+    if(!started){fputs("게임 준비 실패: 정답 표제어·뜻풀이 ID와 힌트 후보를 확인하세요.\n",stderr);return;}
     puts("\n[말랑이] 힌트 단어");
-    for (i = 0; i < CARD_COUNT; ++i) {
-        const MalmoiResult *hint = &hints[cards[i]];
-        printf("%d. %s (유사도 %.4f)\n", i + 1, hint->word,
-               (double)hint->score);
-    }
+    for(int i=0;i<game.cardCount;i++)printf("%d. %s (유사도 %.4f)\n",i+1,game.cards[i].word,game.cards[i].similarity);
 
     while (!game.finished) {
         char guess[MALLANGI_WORD_BYTES];
@@ -161,16 +143,13 @@ int main(void) {
         return 1;
     }
 
-    printf("사전: %s\n설명 검색: %s\n", malmoi_data_path(engine),
-           strcmp(malmoi_search_mode(engine), "e5-semantic") == 0
-               ? "E5 의미 검색 (로컬 ONNX)"
-               : strcmp(malmoi_search_mode(engine), "native-index") == 0
-                   ? "전체 어종 TF-IDF + Kiwi BM25"
-                   : "문자 유사도 (모델 불필요)");
+    printf("사전: %s\n역방향 검색 백엔드: %s\n유사어·게임: %s\n",malmoi_data_path(engine),malmoi_search_mode(engine),!strcmp(malmoi_search_mode(engine),"native-index")?"전체 사전 뜻풀이 TF-IDF + Kiwi BM25":"기존 MLM 저장 벡터");
+    if(!strcmp(malmoi_search_mode(engine),"lexical"))
+        fputs("주의: 구형 문자 검색입니다. 전체 어종 검색은 cmake --preset team 빌드를 사용하세요.\n",stderr);
 
     srand((unsigned int)time(NULL));
     while (1) {
-        puts("\nMalmoi\n1. 역방향 사전\n2. 유사어\n3. 말랑이\n4. 단어 사이 다리 놓기\n0. 종료");
+        puts("\nMalmoi\n1. 뜻풀이 역검색 (선택된 역검색 백엔드)\n2. 유사어 (현재 엔진의 단어 유사도)\n3. 말랑이\n4. 단어 사이 다리 놓기\n0. 종료");
         if (!read_line("선택: ", choice, sizeof(choice))) break;
         if (!strcmp(choice, "0")) break;
         if (!strcmp(choice, "1")) run_search(engine, 0);

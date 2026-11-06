@@ -9,11 +9,13 @@ MALMOI_MAIN {
     MalmoiResult hits[10];
     size_t count=0,i;
     int rc;
-    if (argc<3) {
-        fprintf(stderr,"usage: malmoi_cli query TEXT | word WORD | pair A B\n"); return MALMOI_ARGUMENT;
+    if (argc<3 && !(argc==2 && !strcmp(argv[1],"--status"))) {
+        fprintf(stderr,"usage: malmoi_cli --status | query DESCRIPTION | word WORD (stored vectors) | pair A B\n"); return MALMOI_ARGUMENT;
     }
     rc=malmoi_open(&engine); if (rc) goto done;
-    if (!strcmp(argv[1],"query") && argc==3) {
+    if(argc==2 && !strcmp(argv[1],"--status")) {
+        printf("reverse_backend=%s\nsimilar_backend=%s\n",malmoi_search_mode(engine),!strcmp(malmoi_search_mode(engine),"native-index")?"definition-tfidf-bm25":"stored-vectors");
+    } else if (!strcmp(argv[1],"query") && argc==3) {
         rc=malmoi_search(engine,argv[2],hits,10,&count);
     } else if (!strcmp(argv[1],"word") && argc==3) {
         rc=malmoi_similar(engine,argv[2],hits,10,&count);

@@ -138,25 +138,14 @@ sequenceDiagram
 
 **선택 E5 모드:** `MALMOI_WITH_E5=ON` 빌드에서 `MALMOI_MODEL`을 지정하면 `src/internal/e5_encoder.c`가 `tools/embed_query.py`의 `QueryEncoder`를 임베딩한다. 사전·모델 해시/revision/공간을 검증한 뒤 `malmoi_search_open()`에 인코더를 전달한다. `malmoi_search()` → `malmoi_search_text()` → 질의 E5 벡터 → MLM word 벡터와 코사인 비교 → key별 최고 점수 → 결과 배열 순서다. 외부 호출자는 `malmoi.h`를 그대로 사용한다. 모델 없는 기본 배포 경로는 유지되며, 선택 빌드에는 Python 공유 라이브러리·NumPy·ONNX Runtime·tokenizers와 일치하는 모델 자산이 추가로 필요하다. 잘못된 명시적 모델 설정은 오류이며 문자 검색으로 자동 전환하지 않는다.
 
-### 3.4 유사어 및 단어쌍: 단어 → 저장 벡터 비교
+### 3.4 유사어 및 단어쌍
 
-```mermaid
-flowchart LR
-    Word["word / a,b: 기존 표제어"] --> Key["정규화 key로 사전 그룹 찾기"]
-    Key --> Vectors["그룹에 속한 word_vector 조회"]
-    Vectors --> Cos["다른 단어 그룹의 벡터와 코사인"]
-    Cos --> Max["여러 뜻이 있으면 최고 점수 선택"]
-    Max --> Result["Top-K 유사어 또는 float score"]
-```
+기본 네이티브 모드의 `malmoi_similar`와 `malmoi_similarity`는 전체 사전의 뜻풀이 쌍마다 문자 TF-IDF 코사인과 양방향 정규화 Kiwi BM25를 동등하게 결합한다. 두 단어의 뜻풀이 쌍 중 최대값을 사용하며 결과는 대칭인 0~1 점수다. 어느 공통 구성요소가 비어 있으면 계산 가능한 구성요소만 사용한다. 이 결합은 검증 중인 기준값이며 확률이나 E5 의미 유사도와 같지 않다.
 
-- `malmoi_similar(engine, word, out, k, &count)`: 입력 단어를 찾고 다른 단어들의 저장 벡터와 비교한다. **단어별 최고 점수만** 반환하고 자기 단어는 제외한다.
-- `malmoi_similarity(engine, a, b, &score)`: 두 단어의 저장 벡터 간 최고 코사인만 돌려준다.
-- 이 두 API의 점수는 **[-1, 1] 범위의 코사인**, 위 역방향 문자 점수는 **[0, 1]**이다. 서로 같은 확률이나 정확도로 해석하면 안 된다.
-- `word_id`는 사전 데이터셋 안에서만 안정적이다. 다른 `.mlm`을 배포한 뒤에도 같은 ID가 같은 단어라는 보장은 없다.
-- `MalmoiResult.word`·`.key`는 새 문자열을 할당해 넘기는 게 아니라 **엔진이 보유한 문자열 포인터**다. UI에서 `malmoi_close()` 뒤에도 사용하려면 별도로 복사해야 한다.
+기존 저장 벡터 검색은 명시적 레거시 모드에서 유지한다. 네이티브 `word_id`는 같은 코퍼스에서 `malmoi_word_at`의 인덱스와 같으며 원본 뜻풀이 ID와 구분한다. 문자열 포인터는 엔진 소유다.
 
 ### 3.5 말랑이: 입력값과 게임 상태
 
-`main.c`가 정답을 설정하고 `GameState`를 만든다. `games/mallangi/game.c`의 `submit_guess(&game, guess)`가 중복 입력·정답·사전 등록 여부를 판단하고, 오답에 한해 `malmoi_similarity()`로 실제 벡터 유사도를 구한다. `GameResult`의 `status`와 `similarity`를 앱이 출력한다. 게임 상태는 `GameState`에, 검색 데이터는 계속 `Malmoi *engine`에 있으므로 **게임과 검색 코어는 별도로 유지**된다.
+`main.c`가 정답을 설정하고 `GameState`를 만든다. `games/mallangi/game.c`의 `submit_guess(&game, guess)`가 중복 입력·정답·사전 등록 여부를 판단하고, 오답에 한해 고정된 정답 뜻풀이 ID와 추측 단어를 `malmoi_similarity_sense()`로 비교한다. `GameResult`의 `status`와 `similarity`를 앱이 출력한다. 게임 상태는 `GameState`에, 검색 데이터는 계속 `Malmoi *engine`에 있으므로 **게임과 검색 코어는 별도로 유지**된다.
 
 현재 통합 CLI는 데모 정답으로 `이슬비`를 사용하며 `MALLANGI_ANSWER`로 바꿀 수 있다. **정답 선정·일일 게임 운영 정책이 구현되었다는 의미는 아니다.**

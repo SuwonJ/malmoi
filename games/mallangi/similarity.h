@@ -10,4 +10,6 @@ int game_similarity(
     float *score
 );
 
+int game_similarity_sense(const Malmoi *engine,const char *answer,int64_t sense_id,const char *guess,float *score);
+
 #endif

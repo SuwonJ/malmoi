@@ -21,39 +21,30 @@ malmoi_close(engine);
 
 | 함수 | 입력과 결과 |
 | --- | --- |
-| `malmoi_open(&engine)` | MLM 로드·검색 인덱스 준비. 실패 시 engine=NULL |
-| `malmoi_search(engine, text, out, k, &count)` | 설명 문자열 → 선택 모드(문자/E5)에 따른 단어·점수 |
-| `malmoi_similar(engine, word, out, k, &count)` | 기존 단어 → 저장 벡터로 유사어·점수, 자기 키 제외 |
-| `malmoi_similarity(engine, a, b, &score)` | 두 기존 단어 → 저장 벡터 코사인 |
+| `malmoi_open(&engine)` | 기본 네이티브 인덱스 준비. 실패 시 engine=NULL |
+| `malmoi_search(engine, text, out, k, &count)` | 설명 문자열 → 선택 모드(네이티브/레거시/E5)에 따른 단어·점수 |
+| `malmoi_similar(engine, word, out, k, &count)` | 기존 단어 → 뜻풀이 TF-IDF + 대칭 BM25 유사어·점수, 자기 키 제외 |
+| `malmoi_similarity(engine, a, b, &score)` | 두 기존 단어 → 최대 뜻풀이 쌍 결합 점수 |
 | `malmoi_close(engine)` | 자원 해제. NULL 허용 |
 | `malmoi_error_string(status)` | 오류 코드의 설명 |
 
-공개 검색 함수에는 모델명·차원·인코더 설정이 없습니다. 기본 빌드는 C만 사용합니다. 선택 `MALMOI_WITH_E5=ON` 빌드는 `MALMOI_MODEL`을 지정하면 프로세스 내부에 Python/ONNX 인코더를 로드합니다. 외부 프로세스는 실행하지 않습니다. MLM에 word 벡터가 있어야 엔진을 열 수 있습니다.
+기본 네이티브 모드는 MLM을 사용하지 않고 배포된 전체 사전 인덱스와 Kiwi C API를 사용한다. `malmoi_data_path`는 인덱스 경로, `malmoi_search_mode`는 `native-index`다. 레거시·E5 빌드에서는 기존 MLM과 선택된 모델을 사용한다.
 
-`malmoi_data_path(engine)`은 실제 선택한 사전 경로, `malmoi_search_mode(engine)`은 `lexical` 또는 `e5-semantic`을 반환합니다. 경로는 설정값이며 상대 경로일 수 있습니다. 두 문자열은 엔진 소유이며 NULL 엔진에는 NULL을 반환합니다. 명시한 E5 설정이 잘못되면 `MALMOI_CONFIG`(12)를 반환하며 문자 모드로 조용히 전환하지 않습니다. 모델과 C 로더의 descriptor가 다르면 `MALMOI_SPACE`를 반환합니다.
+## 뜻풀이별 게임 API
 
-## 데이터 지정
-
-기본 경로는 작업 디렉터리 기준 `data/dictionary.mlm`입니다. 담당자는 환경 변수 `MALMOI_DATA`로 다른 MLM의 UTF-8 경로를 지정합니다.
-
-```bash
-MALMOI_DATA=/path/to/dictionary.mlm ./build/core/malmoi_cli pair "먼지잼" "이슬비"
-```
-
-Windows PowerShell에서는 `$env:MALMOI_DATA='C:\path\dictionary.mlm'`으로 설정합니다. 데이터 교체는 다음 open부터 적용되고 열린 핸들은 기존 데이터를 유지합니다. MLM만 바꾸면 팀원 호출 코드는 유지됩니다.
+`malmoi_sense_count/at`으로 원본 뜻풀이 ID를 조회하고, `malmoi_similar_sense`와 `malmoi_similarity_sense`에 정답 표제어와 원본 ID를 함께 전달한다. 후보 단어는 뜻풀이 중 최대값을 사용한다. 잘못된 조합은 NOT_FOUND이고 레거시 백엔드는 UNSUPPORTED다. 문자열 수명은 엔진 close까지다.
 
 ## 점수와 결과 수명
 
-- `malmoi_search` 기본 모드: 뜻풀이의 문자 1·2·3그램 빈도 코사인 [0,1]. 공백·ASCII 구두점·일반 Unicode 구두점을 제외하고 ASCII 대문자를 소문자로 바꿉니다. 64비트 해시로 n-gram을 표현합니다. 겹침이 없는 결과는 제외합니다. E5 모드는 질의를 인코딩하고 MLM word 슬롯의 뜻풀이 임베딩과 코사인 [-1,1]로 비교하며, 같은 key는 최고 점수 하나만 반환합니다. 의미 점수는 확률이 아닙니다.
-- `malmoi_similar`, `malmoi_similarity`: MLM word 벡터의 코사인 [-1,1]. 뜻이 여러 개면 쌍별 최대값을 사용합니다. 확률이 아니며 설명 검색 점수와 절댓값을 비교하지 않습니다.
-- 같은 표제어 키는 결과에 한 번만 반환합니다. 점수 내림차순, 키·ID 오름차순으로 동점을 정합니다.
-- out 배열은 호출자가 k개 할당합니다. count는 실제 결과 수이고 실패 시 0입니다. 점수 출력도 실패 시 0입니다.
-- word/key 문자열은 엔진이 소유하며 close 이후 사용하면 안 됩니다. ID는 해당 데이터셋 안에서만 유효합니다.
-- 입력은 NFC UTF-8을 사용합니다. 설명 입력은 8,192바이트 이내입니다. 빈 입력·잘못된 UTF-8·구두점뿐인 설명은 오류입니다. k=0/out=NULL은 결과 없이 성공할 수 있습니다.
-- 미등록 단어는 NOT_FOUND, 0벡터만 있는 단어는 ZERO_VECTOR입니다. 오류를 점수 0으로 숨기지 않습니다.
-- 열린 엔진의 읽기 호출은 함께 사용할 수 있지만 close와 호출이 겹치면 안 됩니다. 뜻풀이 n-gram 인덱스는 open 때 생성해 재사용합니다.
+- 기본 `malmoi_search`는 문자 TF-IDF와 Kiwi BM25 각각의 상위 100개를 지수 감쇠 순위로 결합한다. 범위는 [0,2]다.
+- 기본 유사어·단어 쌍 점수는 각 뜻풀이 쌍에 대해 TF-IDF 코사인과 정규화된 양방향 BM25 평균을 같은 비중으로 결합한다. BM25 각 방향은 질의 뜻풀이의 자기 BM25 점수로 나누고 1로 제한한다. 점수는 대칭이고 [0,1]이며 확률이 아니다. 공통 구성요소가 하나뿐이면 그 점수만 사용하고 둘 다 없으면 0이다.
+- 다의어는 결합 점수를 낸 뜻풀이 쌍 중 최대값을 사용한다. 뜻풀이 고정 API는 지정한 정답 뜻풀이를 고정한다. 정의가 같으면 서로 다른 표제어도 1이 될 수 있다.
+- `word_id`는 네이티브 표제어 카탈로그의 엔진 로컬 ID이며 `malmoi_word_at`의 인덱스와 같다. 원본 뜻풀이 ID와 다르다.
+- 결과 문자열은 엔진이 소유하며 close 이후에는 사용할 수 없다. 미등록 단어는 NOT_FOUND, 사용할 수 있는 특징이 없는 단어는 ZERO_VECTOR다. 실패 시 결과 수 또는 점수는 0이다.
 
 ## 빌드·링크
+
+기본 검색은 README의 `cmake --preset team`을 사용한다. 다음 Makefile 예제는 레거시 C 검색 빌드다.
 
 ```bash
 make

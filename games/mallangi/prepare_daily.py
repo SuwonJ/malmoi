@@ -11,7 +11,10 @@ ROOT = Path(__file__).resolve().parent
 
 def prepare(source, output):
     os.environ.setdefault('MALMOI_DATA', str(ROOT.parent.parent / 'data/full/dictionary-full.mlm'))
-    engine = ctypes.CDLL(str(ROOT / 'libmallangi_web.so'))
+    library = Path(os.environ.get('MALLANGI_LIBRARY', str(ROOT.parents[1] / 'build/team/libmallangi_web.so'))).resolve()
+    os.environ.setdefault('MALMOI_NATIVE_INDEX', str(library.parent / 'runtime/index'))
+    os.environ.setdefault('MALMOI_KIWI_MODEL', str(library.parent / 'runtime/model/models/cong/base'))
+    engine = ctypes.CDLL(str(library))
     engine.mallangi_validate_daily.argtypes = [ctypes.c_char_p]
     engine.mallangi_validate_daily.restype = ctypes.c_int
     engine.malmoi_error_string.argtypes = [ctypes.c_int]

@@ -21,5 +21,15 @@ jobs:
           path: artifacts/downloads
           key: native-downloads-v1-${{ runner.os }}-${{ runner.arch }}
       - run: cmake -S . -B build/team -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build/team --config Release --target malmoi wordgame_sii test_native_index_live test_unicode_lower
-      - run: python tests/test_native_runtime.py --binary build/team/test_native_index_live --unicode build/team/test_unicode_lower
+      - run: cmake --build build/team --config Release --target malmoi wordgame_sii malmoi_cli test_native_index_live test_unicode_lower test_native_all_api test_native_two_player test_native_sense_game test_native_hybrid_math
+      - run: python tests/test_native_runtime.py --binary build/team/test_native_index_live --unicode build/team/test_unicode_lower --cli build/team/malmoi_cli
+      - run: ctest --test-dir build/team -C Release --output-on-failure
+      - if: runner.os != 'Windows'
+        run: cmake --build build/team --config Release --target mallangi_web
+      - if: runner.os != 'Windows'
+        run: python -m unittest discover -s tests -p test_sense_persistence.py -v
+        env:
+          MALMOI_SENSE_BRIDGE: ${{ github.workspace }}/build/team/libmallangi_web.${{ runner.os == 'macOS' && 'dylib' || 'so' }}
+      - run: python -m unittest discover -s tests -p test_mallangi_menu.py -v
+        env:
+          MALMOI_MENU_BINARY: ${{ github.workspace }}/build/team/malmoi${{ runner.os == 'Windows' && '.exe' || '' }}

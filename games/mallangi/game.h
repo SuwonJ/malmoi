@@ -16,6 +16,8 @@ typedef struct {
 
 typedef struct {
     char answer[MALLANGI_WORD_BYTES];
+    int64_t answer_sense_id;
+    int answer_has_sense;
     int attempts;
 
     char usedWords[MALLANGI_MAX_ATTEMPTS][MALLANGI_WORD_BYTES];
@@ -53,6 +55,10 @@ int assign_player_cards(
     size_t hintCount
 );
 
+/* Explicit native answer sense. On failure the existing game is unchanged. */
+int game_start_sense(GameState *game,const Malmoi *engine,const char *answer,int64_t sense_id);
+/* Compatibility: native selects the first nonzero source sense and stores its ID;
+ * legacy retains word-based scoring. Prefer game_start_sense for daily answers. */
 int game_start(
     GameState *game,
     const Malmoi *engine,
