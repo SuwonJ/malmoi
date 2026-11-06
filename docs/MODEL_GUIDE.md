@@ -2,7 +2,7 @@
 
 ## 현재 기본: MLM만 사용하는 C 실행
 
-CLion의 Debug는 `MALMOI_WITH_E5=OFF`, 실행 설정의 `MALMOI_MODEL`은 빈 값이다. 팀원용 전체 사전은 `data/full.mlm`과 실행 파일 옆 사전에서 자동으로 찾는다. `MALMOI_DATA`는 실험용 선택 설정이다. 모델 추론을 하지 않는다는 의미의 경량 모드이며, 전체 MLM 크기와 검색 인덱스에 필요한 메모리가 작아지는 것은 아니다.
+기본 CMake 빌드는 `MALMOI_WITH_E5=OFF`, 실행 설정의 `MALMOI_MODEL`은 빈 값이다. 팀원용 전체 사전은 `data/full.mlm`과 실행 파일 옆 사전에서 자동으로 찾는다. `MALMOI_DATA`는 실험용 선택 설정이다. 모델 추론을 하지 않는다는 의미의 경량 모드이며, 전체 MLM 크기와 검색 인덱스에 필요한 메모리가 작아지는 것은 아니다.
 
 | 기능 | 기본 모드 | 선택 E5 모드 |
 |---|---|---|
@@ -16,7 +16,7 @@ cmake --build --preset native
 MALMOI_MODEL= MALMOI_DATA=/path/to/dictionary.mlm ./build/native-debug/malmoi
 ```
 
-Ninja가 필요하다. Windows에서는 같은 환경 변수를 CLion 실행 설정 또는 PowerShell의 `$env:MALMOI_DATA`로 지정한다. 작업 디렉터리는 프로젝트 루트다. 기본 사전 `data/dictionary.mlm`은 8단어 합성 예제이므로 실제 개발에서는 전체 사전을 지정한다.
+Ninja가 필요하다. Windows에서는 같은 환경 변수를 터미널 또는 PowerShell의 `$env:MALMOI_DATA`로 지정한다. 작업 디렉터리는 프로젝트 루트다. 기본 사전 `data/dictionary.mlm`은 8단어 합성 예제이므로 실제 개발에서는 전체 사전을 지정한다.
 
 ## 호출자는 그대로 유지
 
@@ -61,7 +61,7 @@ MALMOI_ENCODER_SCRIPT=/absolute/path/to/tools/embed_query.py \
 ./build/e5/malmoi
 ```
 
-Python 개발 헤더·공유 라이브러리도 필요하다. 선택 빌드는 Python 라이브러리에 링크하므로 MLM만 배포할 때에는 native 빌드의 실행 파일을 사용한다. CLion에서 시도할 때에는 별도 E5 프로필을 만들고 동일 옵션과 환경 변수를 지정한다. 개인별 절대 경로는 `.idea/` 또는 `CMakeUserPresets.json`에 보관한다.
+Python 개발 헤더·공유 라이브러리도 필요하다. 선택 빌드는 Python 라이브러리에 링크하므로 MLM만 배포할 때에는 native 빌드의 실행 파일을 사용한다. VS Code 통합 터미널에서도 동일한 빌드 옵션과 환경 변수를 사용한다. 개인별 절대 경로는 공용 설정에 넣지 않는다.
 
 모델 폴더 구성은 `download.json`, `tokenizer.json`, `onnx/model_quantized.onnx`다. 기본 인코더는 E5의 `query: ` / `passage: `, attention-mask mean pooling, L2 정규화, 길이 128을 검증한다. 모델·토크나이저 SHA-256과 revision도 MLM과 대조한다. 명시한 모델 설정이 잘못되면 오류이며 문자 모드로 자동 전환하지 않는다.
 

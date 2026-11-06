@@ -4,15 +4,15 @@
 
 ## 팀원 시작 방법
 
-같은 레포를 clone하고 CLion에서 루트를 열어 기본 CMake 빌드 후 `malmoi`를 실행합니다. Python·ONNX·모델·환경 변수 설정은 필요 없습니다.
+저장소를 clone하고 VS Code에서 폴더를 연 뒤 통합 터미널에서 아래 CMake 명령으로 빌드하고 실행합니다. CMake Tools 확장은 선택 사항입니다. Python·ONNX·모델·환경 변수 설정은 필요 없습니다.
 
 전체 사전은 `data/full/`의 분할 파일로 Git에서 관리합니다. CMake가 SHA-256을 검증하며 `data/full.mlm`으로 자동 복원하고 실행 파일 옆에 배치합니다. Git LFS나 수동 파일 병합도 필요 없습니다. 현재 데이터는 고유어 204,632개 정규화 키 범위입니다. 기본 설명 검색은 문자 기반이며, 유사어와 게임은 저장된 임베딩을 사용합니다.
 
 모델 담당자는 별도 `e5` 빌드에서 실험합니다. 기본 빌드와 `malmoi.h` 호출 방식은 동일합니다.
 
-## 시작하기 (CLion / CMake)
+## 시작하기 (VS Code / 터미널)
 
-프로젝트 루트를 CLion에서 열거나 다음 명령을 실행합니다.
+프로젝트 루트에서 다음 명령을 실행합니다. VS Code 통합 터미널과 일반 터미널에서 동일합니다.
 
 ```bash
 cmake -S . -B build/cmake -DCMAKE_BUILD_TYPE=Debug
@@ -69,7 +69,7 @@ MALMOI_DATA=/path/to/dictionary.mlm MALMOI_MODEL=/path/to/model ./build/e5/malmo
 
 기존 `malmoi.h` 호출은 그대로 사용합니다. `MALMOI_MODEL`을 지정하지 않으면 문자 검색이며, 지정했는데 모델·의존성·빌드 설정이 잘못되면 오류로 종료합니다. 기본 빌드로 돌아가려면 별도 디렉터리에서 `-DMALMOI_WITH_E5=OFF`로 빌드하고 `MALMOI_MODEL`을 해제하세요.
 
-CLion에서는 CMake 프로필에 위 옵션들을 넣고 Run Configuration의 Working directory를 프로젝트 루트, Environment variables를 `MALMOI_DATA`와 `MALMOI_MODEL`로 지정합니다. IDE 설정은 개인별 `.idea/`에만 저장합니다.
+VS Code에서도 통합 터미널에서 위 CMake 명령과 환경 변수를 사용합니다. 디버깅 설정을 추가한다면 작업 디렉터리와 환경 변수를 동일하게 지정합니다. 개인별 절대 경로는 공용 설정에 넣지 않습니다.
 
 E5 모드는 현재 Linux에서 검증했습니다. 선택 빌드는 Python 공유 라이브러리와 해당 Python 환경도 배포해야 하므로, 실행 파일·MLM만 전달하려면 기본 빌드를 사용하세요. 별도 작업 디렉터리에서 실행하려면 `MALMOI_ENCODER_SCRIPT=/absolute/path/to/tools/embed_query.py`도 지정합니다.
 

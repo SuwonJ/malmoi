@@ -8,7 +8,7 @@
 - **계산 주체:** 기본은 C11 엔진으로 Python, ONNX, 네트워크를 요구하지 않는다. 선택 E5 빌드는 프로세스 내부의 Python/ONNX 인코더로 새 설명을 벡터화하며 네트워크는 사용하지 않는다.
 - **데이터:** 별도로 생성한 `.mlm`에 표제어·뜻풀이·미리 계산한 임베딩이 들어 있다. 신경망 모델 자체가 저장된 것은 아니다.
 - **UI:** [Figma 원안](https://www.figma.com/design/qPAloPFOBlIWVaWvmZVFfY/malmoi)은 존재하지만, 구현 프레임워크와 로컬/원격 배치는 **미결정**이다.
-- **기본 실행:** CLion/CMake의 `malmoi`는 `src/main.c`를 통해 메뉴를 표시한다. 기존 Makefile 예제와 게임 단독 `main`은 CI·호환성 검사용으로 당분간 보존하며, CMake 기본 빌드에는 포함하지 않는다.
+- **기본 실행:** CMake로 빌드한 `malmoi`는 `src/main.c`를 통해 메뉴를 표시한다. 기존 Makefile 예제와 게임 단독 `main`은 CI·호환성 검사용으로 당분간 보존하며, CMake 기본 빌드에는 포함하지 않는다.
 
 ```mermaid
 flowchart TB
@@ -31,7 +31,7 @@ flowchart TB
 
 ```text
 malmoi/
-├── CMakeLists.txt           CLion의 기본 빌드: 실행 파일 malmoi
+├── CMakeLists.txt           기본 CMake 빌드: 실행 파일 malmoi
 ├── Makefile                 기존 CI/회귀 테스트의 빌드(전환 전까지 유지)
 ├── include/
 │   ├── malmoi.h            기능 담당자/UI가 사용하는 공개 API
