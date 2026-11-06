@@ -43,6 +43,22 @@ if(NOT WIN32)
     target_link_libraries(malmoi_core PUBLIC m)
 endif()
 
+option(MALMOI_WITH_NATIVE_INDEX "Enable full-corpus native Kiwi+TF-IDF index (POSIX)" OFF)
+if(MALMOI_WITH_NATIVE_INDEX)
+    if(WIN32)
+        message(FATAL_ERROR "Native index mmap support currently requires POSIX")
+    endif()
+    set(KIWI_ROOT "" CACHE PATH "Kiwi 0.24.0 native distribution")
+    find_path(KIWI_INCLUDE_DIR kiwi/capi.h HINTS "${KIWI_ROOT}/include" REQUIRED)
+    find_library(KIWI_LIBRARY NAMES kiwi HINTS "${KIWI_ROOT}/lib" REQUIRED)
+    find_package(ICU REQUIRED COMPONENTS uc)
+    find_package(Threads REQUIRED)
+    target_sources(malmoi_core PRIVATE src/internal/native_lexical.c src/internal/sha256.c)
+    target_include_directories(malmoi_core PRIVATE "${KIWI_INCLUDE_DIR}")
+    target_compile_definitions(malmoi_core PRIVATE MALMOI_WITH_NATIVE_INDEX)
+    target_link_libraries(malmoi_core PUBLIC "${KIWI_LIBRARY}" ICU::uc Threads::Threads)
+endif()
+
 # Main team CLI (independent of the standalone games).
 add_executable(malmoi
     src/main.c

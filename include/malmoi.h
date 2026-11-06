@@ -14,10 +14,10 @@ extern "C" {
 
 typedef struct Malmoi Malmoi;
 typedef struct {
-    uint32_t word_id;  /* valid for this engine's dataset only */
+    uint32_t word_id;  /* dataset ID; UINT32_MAX when result has no unique C match */
     const char *word;  /* original spelling, read-only */
     const char *key;   /* normalized word */
-    float score;       /* lexical search [0,1]; embedding search/similarity [-1,1] */
+    float score;       /* native [0,1], E5 [-1,1], rank fusion [0,2] */
 } MalmoiResult;
 
 enum MalmoiStatus {
@@ -59,9 +59,24 @@ MALMOI_API int malmoi_word_at(const Malmoi *engine, size_t index, MalmoiWord *ou
  * Default: definition character overlap cosine [0,1]. E5 mode: [-1,1].
  * Caller allocates out[k]. count is actual results, cleared on failure.
  * Returned strings belong to engine, valid until malmoi_close.
+ * Indexed modes preserve reference ordering; absent/ambiguous C words use
+ * UINT32_MAX and cannot be used as a C dataset ID.
  * k=0/out=NULL is allowed. Text is limited to 8192 UTF-8 bytes. */
 MALMOI_API int malmoi_search(const Malmoi *engine,const char *text,
                             MalmoiResult *out,size_t k,size_t *count);
+/* Native full-corpus search additionally exposes the source sense ID and row.
+ * Strings are engine-owned until malmoi_close. Only the native-index backend
+ * supports this function; scores are the same rank-fusion values as search. */
+typedef struct {
+    uint32_t row;
+    int64_t sense_id;
+    const char *word;
+    const char *definition;
+    const char *word_type;
+    float score;
+} MalmoiSenseResult;
+MALMOI_API int malmoi_search_senses(const Malmoi *engine,const char *text,
+                                   MalmoiSenseResult *out,size_t k,size_t *count);
 /* Existing NFC word -> similar words, excluding its own normalized key. */
 MALMOI_API int malmoi_similar(const Malmoi *engine,const char *word,
                              MalmoiResult *out,size_t k,size_t *count);

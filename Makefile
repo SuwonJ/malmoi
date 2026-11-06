@@ -13,6 +13,12 @@ EXAMPLE_LDFLAGS = -municode
 endif
 SOURCES = src/vecdb.c src/malmoi.c src/internal/search_backend.c src/internal/lexical.c
 OBJECTS = $(BUILD_DIR)/vecdb.o $(BUILD_DIR)/malmoi.o $(BUILD_DIR)/search_backend.o $(BUILD_DIR)/lexical.o $(BUILD_DIR)/bridge.o
+ifeq ($(NATIVE_INDEX),1)
+CPPFLAGS += -DMALMOI_WITH_NATIVE_INDEX -I$(KIWI_ROOT)/include
+CFLAGS += -pthread
+LDLIBS += -L$(KIWI_ROOT)/lib -Wl,-rpath,$(KIWI_ROOT)/lib -lkiwi -licuuc -pthread
+OBJECTS += $(BUILD_DIR)/native_lexical.o $(BUILD_DIR)/sha256.o
+endif
 HEADERS = include/vecdb.h include/malmoi.h src/internal/search_backend.h src/internal/lexical.h
 .PHONY: all core search-cli test core-test search-test fixture sanitize check demo-b demo-c demo-d
 all: search-cli
@@ -83,3 +89,13 @@ ring-fixture:
 bridge: $(BUILD_DIR)/bridge_cli$(EXEEXT)
 bridge-test: ring-fixture $(BUILD_DIR)/test_bridge$(EXEEXT)
 	MALMOI_DATA=build/fixtures/ring.mlm $(BUILD_DIR)/test_bridge$(EXEEXT)
+
+
+$(BUILD_DIR)/native_lexical.o: src/internal/native_lexical.c src/internal/native_lexical.h $(HEADERS) | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/test_native_index_live$(EXEEXT): tests/test_native_index_live.c $(BUILD_DIR)/libmalmoi.a
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(BUILD_DIR)/libmalmoi.a $(LDFLAGS) $(LDLIBS) -o $@
+
+$(BUILD_DIR)/sha256.o: src/internal/sha256.c src/internal/sha256.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@

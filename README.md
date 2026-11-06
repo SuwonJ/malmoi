@@ -30,6 +30,26 @@ Windows에서는 `build/cmake/Debug/malmoi.exe` 또는 사용한 CMake 생성기
 
 저장소의 `data/dictionary.mlm`은 아주 작은 **합성 예제 데이터**입니다. 실제 사전의 품질을 나타내지 않습니다. 실제 데이터는 `MALMOI_DATA=/path/to/dictionary.mlm`로 선택할 수 있습니다.
 
+## 실험: 전체 어종 네이티브 검색 (Linux)
+
+`native-index`는 Python 검색기의 문자 TF-IDF와 Kiwi BM25를 C에서 실행하는 선택 빌드입니다. 기존 C 검색기는 그대로 기본값입니다. 실행에는 Python이 필요하지 않지만, Kiwi 0.24.0의 네이티브 라이브러리와 동일 버전 base 모델, ICU 개발 라이브러리, 별도로 전달받은 전체 사전 인덱스가 필요합니다. 이 인덱스는 Git에 포함되지 않습니다. Linux x86-64에서 검증했으며 Windows는 현재 지원하지 않습니다.
+
+인덱스 제작자는 `thesaurus`의 기존 전체 사전 캐시와 Python 환경에서 `python tools/export_native_index.py --help`로 생성 옵션을 확인합니다. 생성한 인덱스 디렉터리 전체와 Kiwi 모델을 팀원에게 전달해야 합니다. 인덱스와 모델의 해시가 다르면 시작에 실패합니다.
+
+Linux x86-64에서는 [Kiwi 0.24.0 공식 릴리스](https://github.com/bab2min/Kiwi/releases/tag/v0.24.0)의 `kiwi_lnx_x86_64_v0.24.0.tgz`와 `kiwi_model_v0.24.0_base.tgz`를 각각 풀어 사용합니다. 검증한 압축 파일의 SHA-256은 각각 `577768800258154da5fe6665081c73dafd6a0c39c8e091325d2b2bef8b5fb5d8`, `33188ba932bba4717bad5244bbec0ef8b1c9cbb47e26e68394a7976d8d779083`입니다. 모델 경로는 압축 해제 후 `models/cong/base`입니다.
+
+```bash
+cmake -S . -B build/native-index -DMALMOI_WITH_NATIVE_INDEX=ON -DKIWI_ROOT=/path/to/kiwi-0.24.0
+cmake --build build/native-index
+MALMOI_DATA=/path/to/full.mlm \
+MALMOI_SEARCH_BACKEND=native-index \
+MALMOI_NATIVE_INDEX=/path/to/exported-index \
+MALMOI_KIWI_MODEL=/path/to/kiwi-base-model \
+./build/native-index/malmoi
+```
+
+네이티브 Kiwi 공식 배포본의 `include/kiwi/capi.h`와 `lib/libkiwi.so`가 `KIWI_ROOT`에 있어야 합니다. 공유 라이브러리를 찾지 못하면 해당 `lib/` 디렉터리를 실행기의 라이브러리 경로에 추가합니다. `MALMOI_DATA`는 기존 단어 열거·게임용 C 데이터이며 전체 어종 검색 인덱스와 별개입니다. 인덱스의 단어가 C 데이터에 없거나 유일하게 대응되지 않으면 기존 결과의 `word_id`는 `UINT32_MAX`입니다. 전체 뜻풀이 ID와 원본 행 번호는 추가 API `malmoi_search_senses`에서 확인할 수 있습니다. 게임·유사어 기능은 기존 C 데이터의 범위를 유지합니다. 오류 시 환경 변수와 파일 경로를 확인하거나 `MALMOI_SEARCH_BACKEND`를 해제하여 기존 C 검색기를 사용합니다.
+
 ## 선택: E5 설명 의미 검색
 
 현재 기본 개발 모드는 모델 없는 경량 실행입니다. 모델 담당자의 수정 지점·교체 계약·검증 순서는 [모델 교체 가이드](docs/MODEL_GUIDE.md)를 참고하세요. 공용 `CMakePresets.json`의 `native`와 `e5`로 빌드를 분리할 수 있습니다.

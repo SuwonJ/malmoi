@@ -3,6 +3,9 @@
 #endif
 #include "malmoi.h"
 #include "internal/search_backend.h"
+#ifdef MALMOI_WITH_NATIVE_INDEX
+#include "internal/native_lexical.h"
+#endif
 #ifdef MALMOI_WITH_E5
 #include "internal/e5_encoder.h"
 #endif
@@ -24,6 +27,9 @@ struct Malmoi {
     MalmoiSearch *search;
     char *path;
     int semantic;
+#ifdef MALMOI_WITH_NATIVE_INDEX
+    MalmoiNative *native_index;
+#endif
 #ifdef MALMOI_WITH_E5
     MalmoiE5 *encoder;
 #endif
@@ -113,6 +119,9 @@ static char *database_path(void) {
 }
 void malmoi_close(Malmoi *m) {
     if (m) {
+#ifdef MALMOI_WITH_NATIVE_INDEX
+        malmoi_native_close(m->native_index);
+#endif
         malmoi_search_close(m->search);
 #ifdef MALMOI_WITH_E5
         malmoi_e5_close(m->encoder);
@@ -125,9 +134,12 @@ int malmoi_open(Malmoi **out) {
     char *path;
     int rc;
     const char *model=getenv("MALMOI_MODEL");
+    const char *backend=getenv("MALMOI_SEARCH_BACKEND");
     MalmoiEncoder encoder={0};
     if (!out) return MALMOI_ARGUMENT;
     *out=NULL;
+    if (backend && backend[0] && strcmp(backend,"native") && strcmp(backend,"native-index")) return MALMOI_CONFIG;
+    if (backend && backend[0] && strcmp(backend,"native") && model && model[0]) return MALMOI_CONFIG;
     path=database_path();if (!path) return MALMOI_MEMORY;
     m=(Malmoi *)calloc(1,sizeof(*m));
     if (!m) {free(path);return MALMOI_MEMORY;}
@@ -142,12 +154,52 @@ int malmoi_open(Malmoi **out) {
 #endif
     }
     if (!rc) rc=malmoi_search_open(&m->search,m->db,m->semantic ? &encoder : NULL);
+    if (!rc && backend && !strcmp(backend,"native-index")) {
+#ifdef MALMOI_WITH_NATIVE_INDEX
+        const char *index_dir=getenv("MALMOI_NATIVE_INDEX"),*model_dir=getenv("MALMOI_KIWI_MODEL");
+        if (!index_dir || !index_dir[0] || !model_dir || !model_dir[0]) rc=MALMOI_CONFIG;
+        else rc=malmoi_native_open(&m->native_index,index_dir,model_dir);
+#else
+        rc=MALMOI_UNSUPPORTED;
+#endif
+    }
     if (rc) {malmoi_close(m);return rc;}
     *out=m;return MALMOI_OK;
 }
 int malmoi_search(const Malmoi *m,const char *text,MalmoiResult *out,size_t k,size_t *count) {
+#ifdef MALMOI_WITH_NATIVE_INDEX
+    if (m && m->native_index) {
+        MalmoiNativeHit hits[200];size_t n=0,i,limit=k<200?k:200;int rc;
+        if (!count || (k && !out)) return MALMOI_ARGUMENT;
+        *count=0;rc=malmoi_native_search(m->native_index,text,hits,limit,&n);
+        if (rc) return rc;
+        for (i=0;i<n;i++) {
+            uint32_t id=UINT32_MAX;VecDBWord word;
+            if(vecdb_find_word(m->db,hits[i].word,&id)==VECDB_OK && vecdb_word(m->db,id,&word)==VECDB_OK){out[i].word_id=id;out[i].word=word.word;out[i].key=word.key;}
+            else {out[i].word_id=UINT32_MAX;out[i].word=hits[i].word;out[i].key=hits[i].word;}
+            out[i].score=hits[i].score;
+        }
+        *count=n;return MALMOI_OK;
+    }
+#endif
     if (m && m->semantic) return malmoi_search_text(m->search,text,out,k,count);
     return malmoi_search_definitions(m ? m->search : NULL,text,out,k,count);
+}
+int malmoi_search_senses(const Malmoi *m,const char *text,MalmoiSenseResult *out,size_t k,size_t *count) {
+    if(!count)return MALMOI_ARGUMENT;
+    *count=0;
+#ifdef MALMOI_WITH_NATIVE_INDEX
+    if(m && m->native_index){
+        MalmoiNativeHit hits[200];size_t n=0,i,limit=k<200?k:200;int rc;
+        if(k && !out)return MALMOI_ARGUMENT;
+        rc=malmoi_native_search(m->native_index,text,hits,limit,&n);if(rc)return rc;
+        for(i=0;i<n;i++){out[i].row=hits[i].row;out[i].sense_id=hits[i].sense_id;out[i].word=hits[i].word;out[i].definition=hits[i].definition;out[i].word_type=hits[i].word_type;out[i].score=hits[i].score;}
+        *count=n;return MALMOI_OK;
+    }
+#else
+    (void)m;(void)text;(void)out;(void)k;
+#endif
+    return MALMOI_UNSUPPORTED;
 }
 size_t malmoi_word_count(const Malmoi *m) {
     return m ? vecdb_word_count(m->db) : 0;
@@ -171,7 +223,11 @@ int malmoi_word_at(const Malmoi *m, size_t index, MalmoiWord *out) {
 }
 const char *malmoi_data_path(const Malmoi *m) { return m ? m->path : NULL; }
 const char *malmoi_search_mode(const Malmoi *m) {
-    return m ? (m->semantic ? "e5-semantic" : "lexical") : NULL;
+    if (!m) return NULL;
+#ifdef MALMOI_WITH_NATIVE_INDEX
+    if (m->native_index) return "native-index";
+#endif
+    return m->semantic ? "e5-semantic" : "lexical";
 }
 int malmoi_similar(const Malmoi *m,const char *word,MalmoiResult *out,size_t k,size_t *count) {
     return malmoi_similar_words(m ? m->search : NULL,word,out,k,count);

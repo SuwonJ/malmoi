@@ -157,13 +157,16 @@ int main(void) {
     if (status != MALMOI_OK) {
         fprintf(stderr, "사전 열기 실패: %s\n", malmoi_error_string(status));
         if (status == MALMOI_CONFIG)
-            fputs("E5 설정을 확인하세요. 의미 검색은 MALMOI_WITH_E5 빌드와 Python/ONNX 모델이 필요합니다.\n", stderr);
+            fputs("선택한 검색기의 빌드 옵션과 모델·인덱스 경로를 확인하세요.\n", stderr);
         return 1;
     }
 
     printf("사전: %s\n설명 검색: %s\n", malmoi_data_path(engine),
            strcmp(malmoi_search_mode(engine), "e5-semantic") == 0
-               ? "E5 의미 검색 (로컬 ONNX)" : "문자 유사도 (모델 불필요)");
+               ? "E5 의미 검색 (로컬 ONNX)"
+               : strcmp(malmoi_search_mode(engine), "native-index") == 0
+                   ? "전체 어종 TF-IDF + Kiwi BM25"
+                   : "문자 유사도 (모델 불필요)");
 
     srand((unsigned int)time(NULL));
     while (1) {
