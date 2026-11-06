@@ -2,18 +2,12 @@
 #include "native_lexical.h"
 #include "sha256.h"
 #include <kiwi/capi.h>
-#include <unicode/ustring.h>
-#include <unicode/utf16.h>
-#include <unicode/utf8.h>
-#include <fcntl.h>
+#include "unicode_lower.h"
+#include "native_platform.h"
 #include <math.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #define HEADER 56U
 #define MAX_QUERY 8192U
@@ -42,12 +36,20 @@ typedef struct { uint32_t row; double score; } Fused;
 static uint32_t get32(const void *p) { uint32_t v; memcpy(&v,p,4); return v; }
 static uint64_t get64(const void *p) { uint64_t v; memcpy(&v,p,8); return v; }
 static float getfloat(const void *p) { float v; memcpy(&v,p,4); return v; }
-static void unmap(Mapping *m) { if (m->p) munmap(m->p,m->n); m->p=NULL; m->n=0; }
+static void unmap(Mapping *m) {
+    if(m->p){
+#ifdef _WIN32
+        UnmapViewOfFile(m->p);
+#else
+        munmap(m->p,m->n);
+#endif
+    }m->p=NULL;m->n=0;
+}
 static int parse_hex(char c) { if(c>='0'&&c<='9')return c-'0';if(c>='a'&&c<='f')return c-'a'+10;return -1; }
 static int manifest_hash(const char *dir,unsigned char out[32]) {
     char path[4096],buf[16385],*p,*end;FILE *f;size_t n,i;
     if(snprintf(path,sizeof(path),"%s/manifest.json",dir)>=(int)sizeof(path))return MALMOI_LIMIT;
-    f=fopen(path,"rb");if(!f)return MALMOI_IO;n=fread(buf,1,sizeof(buf)-1,f);
+    f=native_fopen(path,"rb");if(!f)return MALMOI_IO;n=fread(buf,1,sizeof(buf)-1,f);
     if(ferror(f)||(!feof(f)&&n==sizeof(buf)-1)){fclose(f);return MALMOI_FORMAT;}fclose(f);buf[n]=0;
     p=strstr(buf,"\"data_sha256\"");if(!p)return MALMOI_FORMAT;
     p=strchr(p,':');if(!p)return MALMOI_FORMAT;p++;
@@ -59,21 +61,35 @@ static int manifest_hash(const char *dir,unsigned char out[32]) {
     return MALMOI_OK;
 }
 static int map_section(const char *dir,const char *file,uint32_t kind,const unsigned char hash[32],Mapping *out) {
-    char path[4096];struct stat st;int fd;
+    char path[4096];
     if(snprintf(path,sizeof(path),"%s/%s",dir,file)>=(int)sizeof(path))return MALMOI_LIMIT;
-    fd=open(path,O_RDONLY);if(fd<0)return MALMOI_IO;
+#ifdef _WIN32
+    {wchar_t *wide=native_wide(path);HANDLE f,mapping;LARGE_INTEGER size;
+    if(!wide)return MALMOI_ARGUMENT;
+    f=CreateFileW(wide,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);free(wide);
+    if(f==INVALID_HANDLE_VALUE)return MALMOI_IO;
+    if(!GetFileSizeEx(f,&size)||size.QuadPart<HEADER){CloseHandle(f);return MALMOI_FORMAT;}
+    if((uint64_t)size.QuadPart>SIZE_MAX){CloseHandle(f);return MALMOI_LIMIT;}
+    out->n=(size_t)size.QuadPart;
+    mapping=CreateFileMappingW(f,NULL,PAGE_READONLY,0,0,NULL);CloseHandle(f);
+    if(!mapping)return MALMOI_IO;
+    out->p=MapViewOfFile(mapping,FILE_MAP_READ,0,0,0);CloseHandle(mapping);
+    if(!out->p)return MALMOI_IO;}
+#else
+    {struct stat st;int fd=open(path,O_RDONLY);if(fd<0)return MALMOI_IO;
     if(fstat(fd,&st)||st.st_size<(off_t)HEADER){close(fd);return MALMOI_FORMAT;}
     out->n=(size_t)st.st_size;if((off_t)out->n!=st.st_size){close(fd);return MALMOI_LIMIT;}
     out->p=mmap(NULL,out->n,PROT_READ,MAP_PRIVATE,fd,0);close(fd);
-    if(out->p==MAP_FAILED){out->p=NULL;return MALMOI_IO;}
+    if(out->p==MAP_FAILED){out->p=NULL;return MALMOI_IO;}}
+#endif
     if(memcmp(out->p,"MLMIDX01",8)||get32(out->p+8)!=1||get32(out->p+12)!=kind||memcmp(out->p+24,hash,32)){unmap(out);return MALMOI_FORMAT;}
     return MALMOI_OK;
 }
 static int verify_file(const char *dir,const char *name,uint64_t expected_size,const unsigned char expected[32]) {
-    char path[4096];FILE *f;struct stat st;unsigned char actual[32],buf[65536];size_t n;MalmoiSha256 sha;
+    char path[4096];FILE *f;struct native_stat st;unsigned char actual[32],buf[65536];size_t n;MalmoiSha256 sha;
     if(snprintf(path,sizeof(path),"%s/%s",dir,name)>=(int)sizeof(path))return MALMOI_LIMIT;
-    f=fopen(path,"rb");if(!f)return MALMOI_IO;
-    if(fstat(fileno(f),&st)||st.st_size<0||(uint64_t)st.st_size!=expected_size){fclose(f);return MALMOI_FORMAT;}
+    f=native_fopen(path,"rb");if(!f)return MALMOI_IO;
+    if(native_fstat(native_fileno(f),&st)||st.st_size<0||(uint64_t)st.st_size!=expected_size){fclose(f);return MALMOI_FORMAT;}
     malmoi_sha256_init(&sha);while((n=fread(buf,1,sizeof(buf),f))>0)malmoi_sha256_update(&sha,buf,n);
     if(ferror(f)){fclose(f);return MALMOI_IO;}fclose(f);malmoi_sha256_final(&sha,actual);
     return memcmp(actual,expected,32)?MALMOI_FORMAT:MALMOI_OK;
@@ -144,7 +160,6 @@ int malmoi_native_open(MalmoiNative **out,const char *dir,const char *model){
 fail:malmoi_native_close(m);return rc;
 }
 static int term_id(const SparseIndex*x,const char*s,size_t len){size_t lo=0,hi=(size_t)x->nterms;while(lo<hi){size_t mid=lo+(hi-lo)/2;uint64_t a=get64(x->offsets+8*mid),b=get64(x->offsets+8*(mid+1));size_t n=(size_t)(b-a)-4;int c=memcmp(x->blob+a+4,s,n<len?n:len);if(!c)c=(n>len)-(n<len);if(c<0)lo=mid+1;else hi=mid;}if(lo<x->nterms){uint64_t a=get64(x->offsets+8*lo),b=get64(x->offsets+8*(lo+1));if(b-a==len+4&&!memcmp(x->blob+a+4,s,len))return (int)get32(x->blob+a);}return -1;}
-static UChar32* lower_codepoints(const char *q,int32_t *count){UErrorCode e=U_ZERO_ERROR;int32_t n=0,i=0,j=0,lowerlen;UChar *in,*lower;UChar32 *out;u_strFromUTF8(NULL,0,&n,q,-1,&e);if(e!=U_BUFFER_OVERFLOW_ERROR&&U_FAILURE(e))return NULL;e=U_ZERO_ERROR;in=malloc((size_t)(n+1)*sizeof(UChar));if(!in)return NULL;u_strFromUTF8(in,n+1,NULL,q,-1,&e);if(U_FAILURE(e)){free(in);return NULL;}e=U_ZERO_ERROR;lowerlen=u_strToLower(NULL,0,in,n,"",&e);if(e!=U_BUFFER_OVERFLOW_ERROR&&U_FAILURE(e)){free(in);return NULL;}e=U_ZERO_ERROR;lower=malloc((size_t)(lowerlen+1)*sizeof(UChar));out=malloc((size_t)(lowerlen+1)*sizeof(UChar32));if(!lower||!out){free(in);free(lower);free(out);return NULL;}u_strToLower(lower,lowerlen+1,in,n,"",&e);free(in);if(U_FAILURE(e)){free(lower);free(out);return NULL;}while(i<lowerlen){UChar32 c;U16_NEXT(lower,i,lowerlen,c);out[j++]=c;}free(lower);*count=j;return out;}
 static int pyspace(UChar32 c){return(c>=9&&c<=13)||(c>=28&&c<=32)||c==0x85||c==0xa0||c==0x1680||(c>=0x2000&&c<=0x200a)||c==0x2028||c==0x2029||c==0x202f||c==0x205f||c==0x3000;}
 static int cmp_u32(const void*a,const void*b){uint32_t x=*(const uint32_t*)a,y=*(const uint32_t*)b;return(x>y)-(x<y);}
 static int char_scores(const SparseIndex*x,const char*q,float **out){int32_t n,i,j;UChar32 *cp=lower_codepoints(q,&n);uint32_t *counts=NULL,*seen=NULL;size_t seen_n=0,k;float *scores=NULL;double norm=0;int rc=MALMOI_MEMORY;if(!cp)return MALMOI_ARGUMENT;

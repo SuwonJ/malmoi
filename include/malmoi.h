@@ -28,7 +28,8 @@ enum MalmoiStatus {
 
 /* Default mode is native C only. Finds data/full.mlm, executable-adjacent
  * data/dictionary.mlm, then working-directory data/dictionary.mlm. MALMOI_DATA may
- * select another UTF-8 path. No model, Python, ONNX or network is needed.
+ * select another UTF-8 path. CMake default uses executable-adjacent runtime/
+ * for the native Kiwi index. No Python, ONNX or runtime network is needed.
  * Optional E5 build: MALMOI_MODEL selects matching offline model assets and
  * enables semantic description search using embedded Python/ONNX Runtime.
  * Explicit model configuration errors never silently fall back to lexical.
@@ -38,7 +39,7 @@ enum MalmoiStatus {
 MALMOI_API int malmoi_open(Malmoi **out);
 MALMOI_API void malmoi_close(Malmoi *engine);
 /* Read-only strings owned by engine; NULL for a NULL engine. The data path
- * is the configured path (may be relative); mode is lexical or e5-semantic. */
+ * is the configured path (may be relative); mode is native-index, lexical or e5-semantic. */
 MALMOI_API const char *malmoi_data_path(const Malmoi *engine);
 MALMOI_API const char *malmoi_search_mode(const Malmoi *engine);
 
@@ -56,7 +57,8 @@ MALMOI_API size_t malmoi_word_count(const Malmoi *engine);
 MALMOI_API int malmoi_word_at(const Malmoi *engine, size_t index, MalmoiWord *out);
 
 /* NFC UTF-8 description -> words, ranked by the configured search mode.
- * Default: definition character overlap cosine [0,1]. E5 mode: [-1,1].
+ * CMake default: TF-IDF + Kiwi BM25 rank fusion [0,2].
+ * Legacy lexical mode: [0,1]. E5 mode: [-1,1].
  * Caller allocates out[k]. count is actual results, cleared on failure.
  * Returned strings belong to engine, valid until malmoi_close.
  * Indexed modes preserve reference ordering; absent/ambiguous C words use

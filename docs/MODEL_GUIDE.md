@@ -1,22 +1,22 @@
 # 모델 교체와 실행 모드
 
-## 현재 기본: MLM만 사용하는 C 실행
+## 현재 기본: Kiwi C API 기반 C 검색
 
-기본 CMake 빌드는 `MALMOI_WITH_E5=OFF`, 실행 설정의 `MALMOI_MODEL`은 빈 값이다. 팀원용 전체 사전은 `data/full.mlm`과 실행 파일 옆 사전에서 자동으로 찾는다. `MALMOI_DATA`는 실험용 선택 설정이다. 모델 추론을 하지 않는다는 의미의 경량 모드이며, 전체 MLM 크기와 검색 인덱스에 필요한 메모리가 작아지는 것은 아니다.
+기본 CMake 빌드는 `MALMOI_WITH_E5=OFF`, 실행 설정의 `MALMOI_MODEL`은 빈 값이다. 팀원용 전체 사전은 `data/full.mlm`과 실행 파일 옆 사전에서 자동으로 찾는다. `MALMOI_DATA`는 실험용 선택 설정이다. 기본 역방향 검색은 자동 다운로드한 전체 어종 TF-IDF·BM25 인덱스와 Kiwi C API를 사용한다. Python·ICU 설치나 경로 설정은 필요하지 않다. 기존 MLM은 게임·유사어에 사용한다.
 
 | 기능 | 기본 모드 | 선택 E5 모드 |
 |---|---|---|
-| 설명 검색 | 문자 1–3그램 코사인 | 새 설명의 E5 벡터와 사전 벡터 코사인 |
+| 설명 검색 | 문자 2–4그램 TF-IDF + Kiwi BM25 순위 결합 | 새 설명의 E5 벡터와 사전 벡터 코사인 |
 | 유사어·게임 점수 | MLM의 저장 벡터 | 동일 |
-| 배포 | OS에 맞는 실행 파일 + MLM | 실행 파일 + MLM + Python 환경 + 모델 + 인코더 스크립트 |
+| 배포 | 실행 파일 + 자동 준비된 runtime/ + MLM | 실행 파일 + MLM + Python 환경 + 모델 + 인코더 스크립트 |
 
 ```bash
 cmake --preset native
 cmake --build --preset native
-MALMOI_MODEL= MALMOI_DATA=/path/to/dictionary.mlm ./build/native-debug/malmoi
+./build/native-debug/malmoi
 ```
 
-Ninja가 필요하다. Windows에서는 같은 환경 변수를 터미널 또는 PowerShell의 `$env:MALMOI_DATA`로 지정한다. 작업 디렉터리는 프로젝트 루트다. 기본 사전 `data/dictionary.mlm`은 8단어 합성 예제이므로 실제 개발에서는 전체 사전을 지정한다.
+위 프리셋에는 Ninja가 필요하다. 일반 CMake 명령은 README를 참고한다. 첫 구성에서는 네트워크로 버전이 고정된 인덱스·Kiwi 라이브러리·모델을 준비하고, 이후에는 실행 파일 옆의 데이터를 자동으로 찾는다. 환경 변수는 별도 데이터로 실험할 때만 지정한다.
 
 ## 호출자는 그대로 유지
 

@@ -1,0 +1,25 @@
+name: Native search runtime
+on:
+  push:
+  pull_request:
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: artifacts/downloads
+          key: native-downloads-v1-${{ runner.os }}-${{ runner.arch }}
+      - run: cmake -S . -B build/team -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build/team --config Release --target malmoi wordgame_sii test_native_index_live test_unicode_lower
+      - run: python tests/test_native_runtime.py --binary build/team/test_native_index_live --unicode build/team/test_unicode_lower

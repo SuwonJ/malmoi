@@ -5,10 +5,10 @@
 ## 1. 지금 무엇을 만들고 있나
 
 - **세 기능:** 설명으로 단어 찾기(역방향 사전), 단어로 유사어 찾기, 말랑이 유사도 게임.
-- **계산 주체:** 기본은 C11 엔진으로 Python, ONNX, 네트워크를 요구하지 않는다. 선택 E5 빌드는 프로세스 내부의 Python/ONNX 인코더로 새 설명을 벡터화하며 네트워크는 사용하지 않는다.
+- **계산 주체:** 기본은 C11 엔진과 Kiwi C API다. 최초 CMake 구성에서 인덱스·라이브러리·모델을 자동 다운로드하며 실행 시 Python, ONNX, 네트워크를 요구하지 않는다. 선택 E5 빌드는 프로세스 내부의 Python/ONNX 인코더로 새 설명을 벡터화하며 네트워크는 사용하지 않는다.
 - **데이터:** 별도로 생성한 `.mlm`에 표제어·뜻풀이·미리 계산한 임베딩이 들어 있다. 신경망 모델 자체가 저장된 것은 아니다.
 - **UI:** [Figma 원안](https://www.figma.com/design/qPAloPFOBlIWVaWvmZVFfY/malmoi)은 존재하지만, 구현 프레임워크와 로컬/원격 배치는 **미결정**이다.
-- **기본 실행:** CMake로 빌드한 `malmoi`는 `src/main.c`를 통해 메뉴를 표시한다. 기존 Makefile 예제와 게임 단독 `main`은 CI·호환성 검사용으로 당분간 보존하며, CMake 기본 빌드에는 포함하지 않는다.
+- **기본 실행:** CMake로 빌드한 `malmoi`는 `src/main.c`를 통해 메뉴를 표시한다. 게임 단독 실행 파일 `wordgame_sii`도 CMake에서 빌드한다. Makefile은 기존 C 검색기 회귀 검증용으로 보존한다.
 
 ```mermaid
 flowchart TB
@@ -17,6 +17,8 @@ flowchart TB
     App --> Game["games/mallangi/game.c — 게임 규칙"]
     Game --> API
     API --> Facade["src/malmoi.c — 엔진 생성 및 함수 연결"]
+    Facade --> Native["native_lexical.c — 기본 TF-IDF + Kiwi BM25"]
+    Native --> Kiwi["Kiwi C API + runtime/ 인덱스·모델"]
     Facade --> Search["src/internal/search_backend.c — 검색·순위"]
     Search --> Lex["src/internal/lexical.c — 문자 n-gram"]
     Search -. "선택 E5 질의 인코딩" .-> E5["e5_encoder.c → Python QueryEncoder → ONNX"]

@@ -16,7 +16,7 @@ OBJECTS = $(BUILD_DIR)/vecdb.o $(BUILD_DIR)/malmoi.o $(BUILD_DIR)/search_backend
 ifeq ($(NATIVE_INDEX),1)
 CPPFLAGS += -DMALMOI_WITH_NATIVE_INDEX -I$(KIWI_ROOT)/include
 CFLAGS += -pthread
-LDLIBS += -L$(KIWI_ROOT)/lib -Wl,-rpath,$(KIWI_ROOT)/lib -lkiwi -licuuc -pthread
+LDLIBS += -L$(KIWI_ROOT)/lib -Wl,-rpath,$(KIWI_ROOT)/lib -lkiwi -pthread
 OBJECTS += $(BUILD_DIR)/native_lexical.o $(BUILD_DIR)/sha256.o
 endif
 HEADERS = include/vecdb.h include/malmoi.h src/internal/search_backend.h src/internal/lexical.h

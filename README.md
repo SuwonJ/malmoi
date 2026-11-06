@@ -1,12 +1,12 @@
 # Malmoi — 말모이
 
-설명으로 우리말 찾기(역방향 사전), 유사어 검색, 말랑이 게임을 위한 C11 프로젝트입니다. 기본 빌드는 MLM만으로 실행하며 Python·ONNX·네트워크가 필요하지 않습니다. 선택 E5 빌드는 설명 의미 검색을 위해 로컬 모델과 Python/ONNX Runtime을 사용합니다.
+설명으로 우리말 찾기(역방향 사전), 유사어 검색, 말랑이 게임을 위한 C11 프로젝트입니다. 기본 CMake 빌드는 전체 어종 문자 TF-IDF + Kiwi BM25를 C와 Kiwi C API로 실행합니다. 인덱스와 네이티브 라이브러리는 최초 구성 때 자동으로 준비하며 실행 시 Python·NumPy·SciPy·Kiwi Python 패키지가 필요하지 않습니다. 선택 E5 빌드는 설명 의미 검색을 위해 로컬 모델과 Python/ONNX Runtime을 사용합니다.
 
 ## 팀원 시작 방법
 
-저장소를 clone하고 VS Code에서 폴더를 연 뒤 통합 터미널에서 아래 CMake 명령으로 빌드하고 실행합니다. CMake Tools 확장은 선택 사항입니다. Python·ONNX·모델·환경 변수 설정은 필요 없습니다.
+저장소를 clone하고 VS Code에서 폴더를 연 뒤 통합 터미널에서 아래 CMake 명령으로 빌드하고 실행합니다. CMake Tools 확장은 선택 사항입니다. 기존 C 개발 도구(C 컴파일러와 CMake)만 사용합니다. Python 패키지 설치나 모델 경로 설정은 필요 없습니다.
 
-전체 사전은 `data/full/`의 분할 파일로 Git에서 관리합니다. CMake가 SHA-256을 검증하며 `data/full.mlm`으로 자동 복원하고 실행 파일 옆에 배치합니다. Git LFS나 수동 파일 병합도 필요 없습니다. 현재 데이터는 고유어 204,632개 정규화 키 범위입니다. 기본 설명 검색은 문자 기반이며, 유사어와 게임은 저장된 임베딩을 사용합니다.
+전체 사전은 `data/full/`의 분할 파일로 Git에서 관리합니다. CMake가 SHA-256을 검증하며 `data/full.mlm`으로 자동 복원하고 실행 파일 옆에 배치합니다. Git LFS나 수동 파일 병합도 필요 없습니다. 이 MLM은 유사어·게임용 고유어 204,632개 정규화 키 데이터입니다. 기본 역방향 검색은 이 범위와 별개인 전체 어종 1,215,000개 뜻풀이 인덱스를 사용합니다. 유사어와 게임은 기존 MLM의 저장된 임베딩을 사용합니다.
 
 모델 담당자는 별도 `e5` 빌드에서 실험합니다. 기본 빌드와 `malmoi.h` 호출 방식은 동일합니다.
 
@@ -24,50 +24,42 @@ cmake --build build/cmake --target wordgame_sii
 ./build/cmake/wordgame_sii
 ```
 
-Windows에서는 `build/cmake/Debug/malmoi.exe` 또는 사용한 CMake 생성기의 출력 경로에서 실행합니다. **작업 디렉터리를 저장소 루트로 지정**하세요. 기본 사전 경로가 `data/dictionary.mlm`이기 때문입니다.
+Windows에서는 `cmake --build build/cmake --config Release` 후 `build/cmake/malmoi.exe`를 실행합니다. 실행 파일 옆의 사전과 `runtime/`를 자동으로 찾으므로 작업 디렉터리나 환경 변수를 지정하지 않아도 됩니다.
 
 메뉴에서 `1` 역방향 사전, `2` 유사어, `3` 말랑이, `4` 워드브릿지를 선택할 수 있습니다. 2인 단어 대결은 별도 실행 대상 `wordgame_sii`입니다. 게임의 데모 정답은 `이슬비`이며, `MALLANGI_ANSWER` 환경 변수로 바꿀 수 있습니다. 이는 임시 실행 메뉴이고 최종 GUI는 아직 결정되지 않았습니다.
 
 저장소의 `data/dictionary.mlm`은 아주 작은 **합성 예제 데이터**입니다. 실제 사전의 품질을 나타내지 않습니다. 실제 데이터는 `MALMOI_DATA=/path/to/dictionary.mlm`로 선택할 수 있습니다.
 
-## 실험: 전체 어종 네이티브 검색 (Linux)
+## 자동으로 준비되는 검색 데이터
 
-`native-index`는 Python 검색기의 문자 TF-IDF와 Kiwi BM25를 C에서 실행하는 선택 빌드입니다. 기존 C 검색기는 그대로 기본값입니다. 실행에는 Python이 필요하지 않지만, Kiwi 0.24.0의 네이티브 라이브러리와 동일 버전 base 모델, ICU 개발 라이브러리, 별도로 전달받은 전체 사전 인덱스가 필요합니다. 이 인덱스는 Git에 포함되지 않습니다. Linux x86-64에서 검증했으며 Windows는 현재 지원하지 않습니다.
+최초 `cmake -S . -B build/cmake` 실행 시 공식 Kiwi 0.24.0 네이티브 라이브러리와 base 모델, [전체 검색 인덱스](https://github.com/SuwonJ/malmoi/releases/tag/search-index-v1)를 내려받고 SHA-256을 검증합니다. 약 900 MiB의 다운로드와 압축 해제를 위한 디스크 공간이 필요합니다. 이후 같은 빌드는 다운로드 캐시를 재사용하며 실행에는 네트워크가 필요하지 않습니다. 다운로드가 중단되면 네트워크를 확인한 뒤 CMake 명령을 다시 실행합니다.
 
-인덱스 제작자는 오프라인 Python 환경에서 `python tools/export_native_index.py --help`로 생성 옵션을 확인합니다. 사전 JSON Lines, 신뢰하는 TF-IDF 캐시, BM25 캐시 경로는 각각 `--dictionary`, `--char-cache`, `--bm25-cache`로 명시합니다. 생성한 인덱스 디렉터리 전체와 Kiwi 모델을 팀원에게 전달해야 합니다. 인덱스와 모델의 해시가 다르면 시작에 실패합니다.
+CMake는 Windows x64, Linux x64/ARM64, macOS x64/ARM64의 공식 Kiwi 배포본을 선택합니다. 운영체제별 실제 검증 결과는 `Native search runtime` CI에서 확인합니다. 별도 ICU·Python 패키지는 설치하지 않습니다. `build/cmake` 폴더를 옮겨 실행할 때는 실행 파일·Kiwi DLL(Windows)·`runtime/`·`data/`를 함께 전달합니다. 지원하지 않는 플랫폼은 명시적으로 구성 오류를 반환합니다.
 
-Linux x86-64에서는 [Kiwi 0.24.0 공식 릴리스](https://github.com/bab2min/Kiwi/releases/tag/v0.24.0)의 `kiwi_lnx_x86_64_v0.24.0.tgz`와 `kiwi_model_v0.24.0_base.tgz`를 각각 풀어 사용합니다. 검증한 압축 파일의 SHA-256은 각각 `577768800258154da5fe6665081c73dafd6a0c39c8e091325d2b2bef8b5fb5d8`, `33188ba932bba4717bad5244bbec0ef8b1c9cbb47e26e68394a7976d8d779083`입니다. 모델 경로는 압축 해제 후 `models/cong/base`입니다.
+기존 C 검색기로 빌드하려면 `-DMALMOI_WITH_NATIVE_INDEX=OFF`를 지정합니다. 네이티브 인덱스 빌드에서 기존 검색기만 선택하려면 `MALMOI_SEARCH_BACKEND=native`를 사용합니다. 기본 설정은 전체 어종 인덱스입니다. 인덱스나 모델이 손상되면 오류를 반환하며 조용히 기존 검색기로 전환하지 않습니다.
 
-```bash
-cmake -S . -B build/native-index -DMALMOI_WITH_NATIVE_INDEX=ON -DKIWI_ROOT=/path/to/kiwi-0.24.0
-cmake --build build/native-index
-MALMOI_DATA=/path/to/full.mlm \
-MALMOI_SEARCH_BACKEND=native-index \
-MALMOI_NATIVE_INDEX=/path/to/exported-index \
-MALMOI_KIWI_MODEL=/path/to/kiwi-base-model \
-./build/native-index/malmoi
-```
+전체 뜻풀이 ID·원본 행 번호는 `malmoi_search_senses`에서 확인합니다. 기존 C 데이터와 대응되지 않는 결과의 `word_id`는 `UINT32_MAX`입니다. 게임·유사어 기능은 기존 C 데이터 범위를 유지합니다.
 
-네이티브 Kiwi 공식 배포본의 `include/kiwi/capi.h`와 `lib/libkiwi.so`가 `KIWI_ROOT`에 있어야 합니다. 공유 라이브러리를 찾지 못하면 해당 `lib/` 디렉터리를 실행기의 라이브러리 경로에 추가합니다. `MALMOI_DATA`는 기존 단어 열거·게임용 C 데이터이며 전체 어종 검색 인덱스와 별개입니다. 인덱스의 단어가 C 데이터에 없거나 유일하게 대응되지 않으면 기존 결과의 `word_id`는 `UINT32_MAX`입니다. 전체 뜻풀이 ID와 원본 행 번호는 추가 API `malmoi_search_senses`에서 확인할 수 있습니다. 게임·유사어 기능은 기존 C 데이터의 범위를 유지합니다. 오류 시 환경 변수와 파일 경로를 확인하거나 `MALMOI_SEARCH_BACKEND`를 해제하여 기존 C 검색기를 사용합니다.
+인덱스 제작자만 오프라인 Python 도구 `tools/export_native_index.py`를 사용합니다. 팀원의 빌드·실행 과정에는 이 도구를 실행하지 않습니다. 대용량 인덱스는 Git 이력 대신 버전이 고정된 Release 첨부 파일로 배포합니다.
 
 ## 선택: E5 설명 의미 검색
 
-현재 기본 개발 모드는 모델 없는 경량 실행입니다. 모델 담당자의 수정 지점·교체 계약·검증 순서는 [모델 교체 가이드](docs/MODEL_GUIDE.md)를 참고하세요. 공용 `CMakePresets.json`의 `native`와 `e5`로 빌드를 분리할 수 있습니다.
+E5는 별도 선택 빌드이며 기본 검색은 Kiwi C API 기반입니다. 모델 담당자의 수정 지점·교체 계약·검증 순서는 [모델 교체 가이드](docs/MODEL_GUIDE.md)를 참고하세요. 공용 `CMakePresets.json`의 `native`와 `e5`로 빌드를 분리할 수 있습니다.
 
-MLM에는 미리 계산한 사전 벡터가 들어 있습니다. 새 설명 문장을 벡터로 만드는 모델은 들어 있지 않습니다. 따라서 **유사어·게임·문자 검색은 MLM만으로**, **E5 설명 의미 검색은 일치하는 모델까지 있어야** 실행할 수 있습니다.
+MLM에는 미리 계산한 사전 벡터가 들어 있습니다. 새 설명 문장을 벡터로 만드는 모델은 들어 있지 않습니다. 유사어·게임은 MLM을 사용하고, 기본 역방향 검색은 자동 준비된 네이티브 인덱스를 사용합니다. E5는 일치하는 모델을 별도로 준비해야 합니다.
 
 ```bash
 # Python 3.9+ 환경(개발 헤더/공유 라이브러리 포함)에 선택 의존성 설치
 /path/to/python -m pip install -r tools/requirements-onnx.txt
 cmake -S . -B build/e5 -G Ninja -DCMAKE_BUILD_TYPE=Debug \
-  -DMALMOI_WITH_E5=ON -DPython3_EXECUTABLE=/path/to/python
+  -DMALMOI_WITH_NATIVE_INDEX=OFF -DMALMOI_WITH_E5=ON -DPython3_EXECUTABLE=/path/to/python
 cmake --build build/e5
 MALMOI_DATA=/path/to/dictionary.mlm MALMOI_MODEL=/path/to/model ./build/e5/malmoi
 ```
 
 모델 폴더에는 `download.json`, `tokenizer.json`, `onnx/model_quantized.onnx`가 필요합니다. 모델 revision·파일 해시·벡터 규격이 MLM과 일치해야 합니다. 실행 중 다운로드나 외부 프로세스 실행은 하지 않습니다. 모델은 엔진을 열 때 한 번 로드하고 질의마다 재사용합니다. 시작 화면에 사전 경로와 설명 검색 모드가 표시됩니다.
 
-기존 `malmoi.h` 호출은 그대로 사용합니다. `MALMOI_MODEL`을 지정하지 않으면 문자 검색이며, 지정했는데 모델·의존성·빌드 설정이 잘못되면 오류로 종료합니다. 기본 빌드로 돌아가려면 별도 디렉터리에서 `-DMALMOI_WITH_E5=OFF`로 빌드하고 `MALMOI_MODEL`을 해제하세요.
+기존 `malmoi.h` 호출은 그대로 사용합니다. `MALMOI_MODEL`을 지정하지 않으면 선택한 기본 검색기이며, 지정했는데 모델·의존성·빌드 설정이 잘못되면 오류로 종료합니다. 기본 빌드로 돌아가려면 별도 디렉터리에서 `-DMALMOI_WITH_E5=OFF`로 빌드하고 `MALMOI_MODEL`을 해제하세요.
 
 VS Code에서도 통합 터미널에서 위 CMake 명령과 환경 변수를 사용합니다. 디버깅 설정을 추가한다면 작업 디렉터리와 환경 변수를 동일하게 지정합니다. 개인별 절대 경로는 공용 설정에 넣지 않습니다.
 

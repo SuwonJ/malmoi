@@ -22,7 +22,7 @@ jobs:
       - name: Build standalone gameSH with CMake
         if: matrix.os == 'ubuntu-latest' && matrix.cc == 'gcc'
         run: |
-          cmake -S . -B build/ci-wordgame
+          cmake -S . -B build/ci-wordgame -DMALMOI_WITH_NATIVE_INDEX=OFF
           cmake --build build/ci-wordgame --target wordgame_sii
   sanitize:
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
       - name: Build standalone gameSH with CMake (MSVC)
         shell: pwsh
         run: |
-          cmake -S . -B build/ci-wordgame
+          cmake -S . -B build/ci-wordgame -DMALMOI_WITH_NATIVE_INDEX=OFF
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cmake --build build/ci-wordgame --target wordgame_sii --config Release
           if ($LASTEXITCODE) { exit $LASTEXITCODE }

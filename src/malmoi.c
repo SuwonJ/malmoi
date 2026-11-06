@@ -90,6 +90,28 @@ static char *default_database_path(void) {
     }
     return copy("data/dictionary.mlm");
 }
+#ifdef MALMOI_WITH_NATIVE_INDEX
+/* Resolve bundled runtime relative to the executable, independent of cwd. */
+static char *runtime_path(const char *suffix) {
+    char executable[32768];char *slash;
+    executable[0]=0;
+#ifdef _WIN32
+    {wchar_t wide[32768];DWORD n=GetModuleFileNameW(NULL,wide,32768);
+     if(n&&n<32768&&!WideCharToMultiByte(CP_UTF8,0,wide,-1,executable,sizeof(executable),NULL,NULL))executable[0]=0;}
+#elif defined(__APPLE__)
+    {uint32_t size=sizeof(executable);if(_NSGetExecutablePath(executable,&size))executable[0]=0;}
+#else
+    {ssize_t n=readlink("/proc/self/exe",executable,sizeof(executable)-1);if(n>0)executable[n]=0;}
+#endif
+    slash=strrchr(executable,'/');
+#ifdef _WIN32
+    {char *backslash=strrchr(executable,'\\');if(backslash&&(!slash||backslash>slash))slash=backslash;}
+#endif
+    if(!slash)return NULL;
+    if((size_t)(slash-executable)+strlen(suffix)+2>sizeof(executable))return NULL;
+    strcpy(slash+1,suffix);return copy(executable);
+}
+#endif
 static char *database_path(void) {
 #ifdef _WIN32
     const wchar_t *value;
@@ -136,6 +158,9 @@ int malmoi_open(Malmoi **out) {
     const char *model=getenv("MALMOI_MODEL");
     const char *backend=getenv("MALMOI_SEARCH_BACKEND");
     MalmoiEncoder encoder={0};
+#ifdef MALMOI_WITH_NATIVE_INDEX
+    if((!backend||!backend[0])&&(!model||!model[0]))backend="native-index";
+#endif
     if (!out) return MALMOI_ARGUMENT;
     *out=NULL;
     if (backend && backend[0] && strcmp(backend,"native") && strcmp(backend,"native-index")) return MALMOI_CONFIG;
@@ -157,8 +182,12 @@ int malmoi_open(Malmoi **out) {
     if (!rc && backend && !strcmp(backend,"native-index")) {
 #ifdef MALMOI_WITH_NATIVE_INDEX
         const char *index_dir=getenv("MALMOI_NATIVE_INDEX"),*model_dir=getenv("MALMOI_KIWI_MODEL");
-        if (!index_dir || !index_dir[0] || !model_dir || !model_dir[0]) rc=MALMOI_CONFIG;
+        char *bundled_index=NULL,*bundled_model=NULL;
+        if(!index_dir||!index_dir[0])index_dir=bundled_index=runtime_path("runtime/index");
+        if(!model_dir||!model_dir[0])model_dir=bundled_model=runtime_path("runtime/model/models/cong/base");
+        if(!index_dir||!model_dir)rc=MALMOI_CONFIG;
         else rc=malmoi_native_open(&m->native_index,index_dir,model_dir);
+        free(bundled_index);free(bundled_model);
 #else
         rc=MALMOI_UNSUPPORTED;
 #endif
